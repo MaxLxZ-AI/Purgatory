@@ -30,7 +30,6 @@ final class Character: SKSpriteNode {
     }
     
     private func setupCharacter() {
-
         physicsBody = SKPhysicsBody(rectangleOf: size)
         physicsBody?.affectedByGravity = false
         physicsBody?.allowsRotation = false
@@ -57,25 +56,12 @@ final class Character: SKSpriteNode {
     }
     
     private func updateDirection() {
-        switch currentDirection {
-        case .up:
-            walkingTextures = Constants.Characters.Enri.Walk.up
-            calmState = Constants.Characters.Enri.Calm.up
-            lastState = calmState
-        case .down:
-            walkingTextures = Constants.Characters.Enri.Walk.down
-            calmState = Constants.Characters.Enri.Calm.down
-            lastState = calmState
-        case .left:
-            walkingTextures = Constants.Characters.Enri.Walk.leftEnri
-            calmState = Constants.Characters.Enri.Calm.left
-            lastState = calmState
-        case .right:
-            walkingTextures = Constants.Characters.Enri.Walk.right
-            calmState = Constants.Characters.Enri.Calm.right
-            lastState = calmState
-        case .none:
-            calmState = lastState
+        if let walk = currentDirection.walkTextures {
+            walkingTextures = walk
+        }
+        
+        if let calm = currentDirection.calmTextures {
+            calmState = calm
         }
     }
     

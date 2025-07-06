@@ -4,7 +4,7 @@ import SpriteKit
 struct GameFortuneMergeView: View {
     @Binding var isGamePresented: Bool
     @State private var gameFortuneMergeScene = GameFortuneMergeScene()
-
+    
     
     @State var isSettiFortuneMergeesented: Bool = false
     @State var isWinFortuneMergeented: Bool = false

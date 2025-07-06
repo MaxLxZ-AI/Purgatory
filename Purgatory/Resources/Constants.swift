@@ -27,6 +27,7 @@ enum Constants {
                 static let up: [SKTexture] = [SKTexture(image: .upWalkingEnri1), SKTexture(image: .upWalkingClmEnri), SKTexture(image: .upWalkingEnri2)]
                 static let right: [SKTexture] = [SKTexture(image: .rightWalkingEnri1), SKTexture(image: .rightCalmEnri), SKTexture(image: .rightWalkingEnri2)]
                 static let leftEnri: [SKTexture] = [SKTexture(image: .leftWalkingEnri1), SKTexture(image: .leftCalmEnri), SKTexture(image: .leftWalkingEnri2)]
+                
             }
             
             enum Calm {
@@ -35,10 +36,7 @@ enum Constants {
                 static let left: SKTexture = SKTexture(image: .leftCalmEnri)
                 static let right: SKTexture = SKTexture(image: .rightCalmEnri)
             }
-            
-
         }
-
     }
 }
 
@@ -57,6 +55,29 @@ enum Direction {
         case .left:  return CGVector(dx: -1, dy: 0)
         case .right: return CGVector(dx: 1, dy: 0)
         case .none: return CGVector(dx: 0, dy: 0)
+        }
+    }
+}
+
+
+extension Direction {
+    var walkTextures: [SKTexture]? {
+        switch self {
+        case .up: return Constants.Characters.Enri.Walk.up
+        case .down: return Constants.Characters.Enri.Walk.down
+        case .left: return Constants.Characters.Enri.Walk.leftEnri
+        case .right: return Constants.Characters.Enri.Walk.right
+        case .none: return nil
+        }
+    }
+    
+    var calmTextures: SKTexture? {
+        switch self {
+        case .up: return Constants.Characters.Enri.Calm.up
+        case .down: return Constants.Characters.Enri.Calm.down
+        case .left: return Constants.Characters.Enri.Calm.left
+        case .right: return Constants.Characters.Enri.Calm.right
+        case .none: return nil
         }
     }
 }
