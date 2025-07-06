@@ -1,40 +1,34 @@
-//
-//  AppDelegate.swift
-//  Purgatory
-//
-//  Created by Maxim GuzPav on 2.07.25.
-//
-
 import UIKit
 
-@main
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+class AppDelegate : NSObject, UIApplicationDelegate {
+    static private(set) var instance: AppDelegate?
+    func application(_ application: UIApplication, ChickEscapeAppDelegate launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        AppDelegate.instance = self
         return true
     }
-
-    func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+    static var orientationLock = UIInterfaceOrientationMask.portrait {
+        didSet {
+            if #available(iOS 16.0, *) {
+                UIApplication.shared.connectedScenes.forEach { scene in
+                    if let windowScene = scene as? UIWindowScene {
+                        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: orientationLock))
+                    }
+                }
+                UIViewController.attemptRotationToDeviceOrientation()
+            } else {
+                if orientationLock != .portrait {
+                    AppDelegate.orientationLock = UIInterfaceOrientationMask.all
+                    UIDevice.current.setValue(UIInterfaceOrientationMask.all.rawValue, forKey: "LKSDNVLKDV")
+                    UINavigationController.attemptRotationToDeviceOrientation()
+                } else {
+                    AppDelegate.orientationLock = UIInterfaceOrientationMask.portrait
+                    UIDevice.current.setValue(UIInterfaceOrientationMask.portrait.rawValue, forKey: "LKSDNVLKDV")
+                    UINavigationController.attemptRotationToDeviceOrientation()
+                }
+            }
+        }
     }
-
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return AppDelegate.orientationLock
     }
-
-    func applicationWillEnterForeground(_ application: UIApplication) {
-        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-    }
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    }
-
-
 }
-
