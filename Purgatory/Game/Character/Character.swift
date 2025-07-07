@@ -1,25 +1,26 @@
 import SpriteKit
 
-final class Character: SKSpriteNode {
+class Character: SKSpriteNode {
     var calmState: SKTexture
-    var walkingTextures: [SKTexture] = Constants.Characters.Enri.Walk.down
+    let character: Characters
+    var walkingTextures: [SKTexture] = Constants.CharactersTextures.Enri.Walk.down
     var isWalking = false {
         didSet {
             updateMovement()
             updateAnimation()
-            
         }
     }
     
     private var walkingAction: SKAction?
     private var moveSpeed: CGFloat = 150.0
     
-    private var currentDirection: Direction = .none
+    var currentDirection: Direction = .none
     private var lastDirection: Direction = .none
     
     private var lastState = SKTexture()
     
-    init(calmState: SKTexture, size: CGSize) {
+    init(character: Characters, calmState: SKTexture, size: CGSize) {
+        self.character = character
         self.calmState = calmState
         super.init(texture: calmState, color: .clear, size: size)
         setupCharacter()
@@ -33,6 +34,7 @@ final class Character: SKSpriteNode {
         physicsBody = SKPhysicsBody(rectangleOf: size)
         physicsBody?.affectedByGravity = false
         physicsBody?.allowsRotation = false
+
         
         createWalkingAction()
     }
@@ -55,15 +57,14 @@ final class Character: SKSpriteNode {
         }
     }
     
-    private func updateDirection() {
-        if let walk = currentDirection.walkTextures {
-            walkingTextures = walk
-        }
-        
-        if let calm = currentDirection.calmTextures {
-            calmState = calm
-        }
+    func updateDirection() {
+
+
     }
+    
+
+    
+
     
     private func updateVelocity() {
         if currentDirection == .none && isWalking {
@@ -94,5 +95,38 @@ final class Character: SKSpriteNode {
         isWalking = false
         physicsBody?.velocity = .zero
         currentDirection = .none
+    }
+}
+
+
+final class Enri: Character {
+    override func updateDirection() {
+        enriTextures()
+    }
+    
+    private func enriTextures() {
+        if let walk = currentDirection.enriWalkTextures {
+            walkingTextures = walk
+        }
+        
+        if let calm = currentDirection.enriCalmTextures {
+            calmState = calm
+        }
+    }
+}
+
+final class Emma: Character {
+    override func updateDirection() {
+        emmaTextures()
+    }
+    
+    private func emmaTextures() {
+        if let walk = currentDirection.emmaWalkTextures {
+            walkingTextures = walk
+        }
+        
+        if let calm = currentDirection.emmaCalmTextures {
+            calmState = calm
+        }
     }
 }

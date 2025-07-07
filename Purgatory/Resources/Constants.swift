@@ -20,7 +20,7 @@ enum Constants {
         
     }
     
-    enum Characters {
+    enum CharactersTextures {
         enum Enri {
             enum Walk {
                 static let down: [SKTexture] = [SKTexture(image: .walkEnri1), SKTexture(image: .calmEnri), SKTexture(image: .walkEnri2)]
@@ -35,6 +35,22 @@ enum Constants {
                 static let up: SKTexture = SKTexture(image: .upWalkingClmEnri)
                 static let left: SKTexture = SKTexture(image: .leftCalmEnri)
                 static let right: SKTexture = SKTexture(image: .rightCalmEnri)
+            }
+        }
+        
+        enum Emma {
+            enum Walk {
+                static let down: [SKTexture] = [SKTexture(image: .downWalkingEmma1), SKTexture(image: .downCalmEmma), SKTexture(image: .downWalkingEmma2)]
+                static let up: [SKTexture] = [SKTexture(image: .upWalkingEmma1), SKTexture(image: .calmUpWalkingEmma), SKTexture(image: .upWalkingEmma2)]
+                static let right: [SKTexture] = [SKTexture(image: .rightWalkingEmma1), SKTexture(image: .rightCalmEmma), SKTexture(image: .rightWalkingEmma2)]
+                static let leftEnri: [SKTexture] = [SKTexture(image: .leftWalkingEmma1), SKTexture(image: .leftCalmEmma), SKTexture(image: .leftWalkingEmma2)]
+            }
+            
+            enum Calm {
+                static let down: SKTexture = SKTexture(image: .downCalmEmma)
+                static let up: SKTexture = SKTexture(image: .calmUpWalkingEmma)
+                static let left: SKTexture = SKTexture(image: .leftCalmEmma)
+                static let right: SKTexture = SKTexture(image: .rightCalmEmma)
             }
         }
     }
@@ -59,25 +75,56 @@ enum Direction {
     }
 }
 
+enum Characters {
+    case Enri
+    case Emma
+}
+
 
 extension Direction {
-    var walkTextures: [SKTexture]? {
+    var enriWalkTextures: [SKTexture]? {
         switch self {
-        case .up: return Constants.Characters.Enri.Walk.up
-        case .down: return Constants.Characters.Enri.Walk.down
-        case .left: return Constants.Characters.Enri.Walk.leftEnri
-        case .right: return Constants.Characters.Enri.Walk.right
+        case .up: return Constants.CharactersTextures.Enri.Walk.up
+        case .down: return Constants.CharactersTextures.Enri.Walk.down
+        case .left: return Constants.CharactersTextures.Enri.Walk.leftEnri
+        case .right: return Constants.CharactersTextures.Enri.Walk.right
         case .none: return nil
         }
     }
     
-    var calmTextures: SKTexture? {
+    var enriCalmTextures: SKTexture? {
         switch self {
-        case .up: return Constants.Characters.Enri.Calm.up
-        case .down: return Constants.Characters.Enri.Calm.down
-        case .left: return Constants.Characters.Enri.Calm.left
-        case .right: return Constants.Characters.Enri.Calm.right
+        case .up: return Constants.CharactersTextures.Enri.Calm.up
+        case .down: return Constants.CharactersTextures.Enri.Calm.down
+        case .left: return Constants.CharactersTextures.Enri.Calm.left
+        case .right: return Constants.CharactersTextures.Enri.Calm.right
         case .none: return nil
         }
     }
+    
+    var emmaWalkTextures: [SKTexture]? {
+        switch self {
+        case .up: return Constants.CharactersTextures.Emma.Walk.up
+        case .down: return Constants.CharactersTextures.Emma.Walk.down
+        case .left: return Constants.CharactersTextures.Emma.Walk.leftEnri
+        case .right: return Constants.CharactersTextures.Emma.Walk.right
+        case .none: return nil
+        }
+    }
+    
+    var emmaCalmTextures: SKTexture? {
+        switch self {
+        case .up: return Constants.CharactersTextures.Emma.Calm.up
+        case .down: return Constants.CharactersTextures.Emma.Calm.down
+        case .left: return Constants.CharactersTextures.Emma.Calm.left
+        case .right: return Constants.CharactersTextures.Emma.Calm.right
+        case .none: return nil
+        }
+    }
+}
+
+struct PhysicsCategory {
+    static let none: UInt32 = 0
+    static let character: UInt32 = 0b1
+    static let dialogTrigger: UInt32 = 0b10
 }

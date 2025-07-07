@@ -5,7 +5,8 @@ import SpriteKit
 final class GameFortuneMergeScene: SKScene {
     var parentFortuneMergeView: GameFortuneMergeView?
     
-    var character: Character!
+    var enri: Enri!
+    var emma: Emma!
     var moveLeftButton: SKSpriteNode!
     var moveRightButton: SKSpriteNode!
     
@@ -13,12 +14,26 @@ final class GameFortuneMergeScene: SKScene {
     
     var dilogManager: DialogManager!
     
+    private var characters: [Character] = []
+    private var dialogTriggers: [DialogTriggerNode] = []
+    
     override func didMove(to view: SKView) {
         setUpBackground()
-        setUpCharcter()
+        setUpEnri()
+        setUpEmma()
         setupControlButtons()
         dilogManager = DialogManager(scene: self)
+        setUpTrigger()
         
+    }
+    
+    private func setUpTrigger() {
+        let trigger = DialogTriggerNode(texture: SKTexture(image: .wft),
+                                       size: CGSize(width: 100, height: 100),
+                                       dialogManager: dilogManager)
+        trigger.position = CGPoint(x: frame.maxX - 100, y: frame.midY)
+        addChild(trigger)
+        dialogTriggers.append(trigger)
     }
     
     private func setUpBackground() {
@@ -29,15 +44,35 @@ final class GameFortuneMergeScene: SKScene {
         addChild(background)
     }
     
-    private func setUpCharcter() {
+    private func setUpEnri() {
         let calmTexture = SKTexture(image: .upWalkingClmEnri)
         
-        character = Character(
-            calmState: calmTexture,
+        enri = Enri(
+            character: .Enri, calmState: calmTexture,
             size: CGSize(width: 64, height: 64)
         )
-        character.position = CGPoint(x: frame.midX, y: frame.midY)
-        addChild(character)
+        characters.append(enri)
+        enri.position = CGPoint(x: frame.midX, y: frame.midY)
+        addChild(enri)
+    }
+    
+    private func setUpEmma() {
+        let calmTexture = SKTexture(image: .downCalmEmma)
+        
+        emma = Emma(
+            character: .Emma, calmState: calmTexture,
+            size: CGSize(width: 64, height: 64)
+        )
+        emma.position = CGPoint(x: frame.midX + 75, y: frame.midY)
+        characters.append(emma)
+        addChild(emma)
+    }
+    
+    override func update(_ currentTime: TimeInterval) {
+        // Update dialog triggers
+        dialogTriggers.forEach { trigger in
+            trigger.update(with: characters)
+        }
     }
     
     private func setupControlButtons() {
@@ -73,7 +108,7 @@ final class GameFortuneMergeScene: SKScene {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        dilogManager.present(text: "The first version of this screen, something myght not work properly", texture: SKTexture(image: .defaultEnri))
+//        dilogManager.present(text: "The first version of this screen, something myght not work properly", texture: SKTexture(image: .defaultEnri))
         for touch in touches {
             let location = touch.location(in: self)
             let nodes = self.nodes(at: location)
@@ -81,7 +116,8 @@ final class GameFortuneMergeScene: SKScene {
             
             for node in nodes {
                 if let direction = moveButtons.first(where: { $0.value == node })?.key {
-                    character.startMoving(in: direction)
+                    enri.startMoving(in: direction)
+                    emma.startMoving(in: direction)
                     node.alpha = 0.8
                 }
             }
@@ -108,7 +144,8 @@ final class GameFortuneMergeScene: SKScene {
         }
         
         if shouldStop {
-            character.stopMoving()
+            enri.stopMoving()
+            emma.stopMoving()
         }
     }
     
@@ -116,7 +153,8 @@ final class GameFortuneMergeScene: SKScene {
         for button in moveButtons.values {
             button.alpha = 0.5
         }
-        character.stopMoving()
+        enri.stopMoving()
+        emma.stopMoving()
     }
 }
 

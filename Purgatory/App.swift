@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct PurgatoryApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State var isMenu = false
+    @State var isMenu = true
     
     
     @State var isLoad = false
