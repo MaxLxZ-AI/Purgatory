@@ -2,7 +2,7 @@ import SpriteKit
 
 
 
-final class GameFortuneMergeScene: SKScene {
+final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var parentFortuneMergeView: GameFortuneMergeView?
     
     var enri: Enri!
@@ -10,7 +10,7 @@ final class GameFortuneMergeScene: SKScene {
     var moveLeftButton: SKSpriteNode!
     var moveRightButton: SKSpriteNode!
     
-    var moveButtons: [Direction: SKSpriteNode] = [:]
+    var moveButtons: [Direction: MovementButton] = [:]
     
     var dilogManager: DialogManager!
     
@@ -18,6 +18,7 @@ final class GameFortuneMergeScene: SKScene {
     private var dialogTriggers: [DialogTriggerNode] = []
     
     override func didMove(to view: SKView) {
+        physicsWorld.contactDelegate = self
         setUpBackground()
         setUpEnri()
         setUpEmma()
@@ -30,7 +31,7 @@ final class GameFortuneMergeScene: SKScene {
     private func setUpTrigger() {
         let trigger = DialogTriggerNode(texture: SKTexture(image: .wft),
                                        size: CGSize(width: 100, height: 100),
-                                       dialogManager: dilogManager)
+                                        dialogManager: dilogManager, triggerRadius: TriggerRadius(radius: 100))
         trigger.position = CGPoint(x: frame.maxX - 100, y: frame.midY)
         addChild(trigger)
         dialogTriggers.append(trigger)
@@ -68,41 +69,117 @@ final class GameFortuneMergeScene: SKScene {
         addChild(emma)
     }
     
-    override func update(_ currentTime: TimeInterval) {
-        // Update dialog triggers
-        dialogTriggers.forEach { trigger in
-            trigger.update(with: characters)
+    func didBegin(_ contact: SKPhysicsContact) {
+        let bodyA = contact.bodyA
+        let bodyB = contact.bodyB
+        
+        // Check for character + trigger radius contact
+        if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.firstDialogTrigger) ||
+            (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.firstDialogTrigger) {
+            
+            let characterNode = bodyA.categoryBitMask == PhysicsCategory.character ? bodyA.node : bodyB.node
+            let triggerNode = bodyA.categoryBitMask == PhysicsCategory.firstDialogTrigger ? bodyA.node : bodyB.node
+            
+            if let character = characterNode as? Character,
+               let radiusNode = triggerNode as? TriggerRadius,
+               let dialogTrigger = radiusNode.parentTrigger ?? triggerNode?.parent as? DialogTriggerNode {
+                dialogTrigger.characterDidEnter(character)
+                startFirstDialog(with: character)
+            }
         }
+        
+        // Check for character + dialog trigger contact
+        if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.dialogTrigger) ||
+           (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.dialogTrigger) {
+            
+            let characterNode = bodyA.categoryBitMask == PhysicsCategory.character ? bodyA.node : bodyB.node
+            let triggerNode = bodyA.categoryBitMask == PhysicsCategory.dialogTrigger ? bodyA.node : bodyB.node
+            
+            if let character = characterNode as? Character,
+               let dialogTrigger = triggerNode as? DialogTriggerNode {
+                dialogTrigger.characterDidEnter(character)
+                startDialog(with: character)
+            }
+        }
+    }
+    
+    func didEnd(_ contact: SKPhysicsContact) {
+//        handleContact(contact, began: false)
+    }
+    
+    private func handleContact(_ contact: SKPhysicsContact, began: Bool) {
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        
+        // Check for collision with first dialog trigger
+        if collision == (PhysicsCategory.character | PhysicsCategory.firstDialogTrigger) {
+            handleTriggerContact(contact, began: began, triggerType: .firstDialog)
+        }
+        // Check for collision with regular dialog trigger
+        else if collision == (PhysicsCategory.character | PhysicsCategory.dialogTrigger) {
+            handleTriggerContact(contact, began: began, triggerType: .regular)
+        }
+    }
+
+    private func handleTriggerContact(_ contact: SKPhysicsContact, began: Bool, triggerType: TriggerType) {
+        let characterNode = contact.bodyA.categoryBitMask == PhysicsCategory.character ?
+            contact.bodyA.node : contact.bodyB.node
+        
+        if let character = characterNode as? Character {
+            if began {
+                switch triggerType {
+                case .firstDialog:
+                    startFirstDialog(with: character)
+                case .regular:
+                    startDialog(with: character)
+                }
+            } else {
+                characters.removeAll()
+            }
+        }
+    }
+
+    enum TriggerType {
+        case firstDialog
+        case regular
+    }
+    
+    private func startDialog(with character: Character) {
+        // Your dialog implementation here
+        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEmma))
+    }
+    
+    private func startFirstDialog(with character: Character) {
+        // Your dialog implementation here
+        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEnri))
     }
     
     private func setupControlButtons() {
         let buttonSize = CGSize(width: 80, height: 80)
         
-        let leftButton = SKSpriteNode(color: .gray, size: buttonSize)
+        let leftButton = MovementButton(size: buttonSize)
         leftButton.position = CGPoint(x: 100, y: 150)
         leftButton.name = "left"
         leftButton.alpha = 0.5
         addChild(leftButton)
         moveButtons[.left] = leftButton
         
-        let rightButton = SKSpriteNode(color: .gray, size: buttonSize)
+        let rightButton = MovementButton(size: buttonSize)
         rightButton.position = CGPoint(x: 200, y: 150)
         rightButton.name = "right"
         rightButton.alpha = 0.5
         addChild(rightButton)
         moveButtons[.right] = rightButton
         
-        let upButton = SKSpriteNode(color: .gray, size: buttonSize)
+        let upButton = MovementButton(size: buttonSize)
         upButton.position = CGPoint(x: 150, y: 230)
         upButton.name = "up"
         upButton.alpha = 0.5
         addChild(upButton)
         moveButtons[.up] = upButton
         
-        let downButton = SKSpriteNode(color: .gray, size: buttonSize)
+        let downButton = MovementButton(size: buttonSize)
         downButton.position = CGPoint(x: 150, y: 70)
-        downButton.name = "down"
-        downButton.alpha = 0.5
+
         addChild(downButton)
         moveButtons[.down] = downButton
     }
@@ -134,12 +211,11 @@ final class GameFortuneMergeScene: SKScene {
         for touch in touches {
             let location = touch.location(in: self)
             let nodes = self.nodes(at: location)
-            
-            for node in nodes {
-                if moveButtons.values.contains(node as! SKSpriteNode) {
-                    shouldStop = false
-                    break
-                }
+            guard nodes.first(where: { node in
+                moveButtons.values.contains { $0 === (node as? MovementButton) }
+            }) == nil else {
+                shouldStop = false
+                continue
             }
         }
         

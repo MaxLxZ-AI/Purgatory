@@ -34,6 +34,9 @@ class Character: SKSpriteNode {
         physicsBody = SKPhysicsBody(rectangleOf: size)
         physicsBody?.affectedByGravity = false
         physicsBody?.allowsRotation = false
+        physicsBody?.categoryBitMask = PhysicsCategory.character
+        physicsBody?.collisionBitMask = PhysicsCategory.none
+        physicsBody?.contactTestBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.firstDialogTrigger
 
         
         createWalkingAction()
