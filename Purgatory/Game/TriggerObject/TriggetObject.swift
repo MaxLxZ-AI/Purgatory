@@ -28,7 +28,7 @@ class DialogTriggerNode: SKSpriteNode {
     
     private func setupPhysics() {
         physicsBody = SKPhysicsBody(rectangleOf: size)
-        physicsBody?.isDynamic = false
+        physicsBody?.isDynamic = true
         physicsBody?.affectedByGravity = false
         physicsBody?.categoryBitMask = PhysicsCategory.dialogTrigger
         physicsBody?.collisionBitMask = PhysicsCategory.dialogTrigger

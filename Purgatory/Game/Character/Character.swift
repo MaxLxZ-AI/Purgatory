@@ -12,7 +12,7 @@ class Character: SKSpriteNode {
     }
     
     private var walkingAction: SKAction?
-    private var moveSpeed: CGFloat = 150.0
+    var moveSpeed: CGFloat = 150.0
     
     var currentDirection: Direction = .none
     private var lastDirection: Direction = .none
@@ -35,7 +35,7 @@ class Character: SKSpriteNode {
         physicsBody?.affectedByGravity = false
         physicsBody?.allowsRotation = false
         physicsBody?.categoryBitMask = PhysicsCategory.character
-        physicsBody?.collisionBitMask = PhysicsCategory.none
+        physicsBody?.collisionBitMask = PhysicsCategory.dialogTrigger
         physicsBody?.contactTestBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.firstDialogTrigger
 
         
@@ -48,7 +48,7 @@ class Character: SKSpriteNode {
     }
     
     
-    private func updateAnimation() {
+   private func updateAnimation() {
         removeAllActions()
         
         if isWalking {
@@ -61,8 +61,6 @@ class Character: SKSpriteNode {
     }
     
     func updateDirection() {
-
-
     }
     
 
@@ -83,7 +81,7 @@ class Character: SKSpriteNode {
         physicsBody?.velocity = velocity
     }
     
-    private func updateMovement() {
+    func updateMovement() {
         updateDirection()
         updateVelocity()
     }
@@ -119,6 +117,14 @@ final class Enri: Character {
 }
 
 final class Emma: Character {
+    
+    weak var leader: Character?  // The character to follow (Enri)
+    var followDistance: CGFloat = 100.0  // Distance to maintain from leader
+    var followDelay: TimeInterval = 0.3  // Delay before starting to follow
+    private var lastLeaderPosition: CGPoint?
+    private var leaderPositions: [CGPoint] = []  // Trail of leader positions
+    private let maxTrailLength = 10
+    
     override func updateDirection() {
         emmaTextures()
     }
@@ -131,5 +137,65 @@ final class Emma: Character {
         if let calm = currentDirection.emmaCalmTextures {
             calmState = calm
         }
+    }
+    
+    func setupFollowing(leader: Character) {
+        self.leader = leader
+        self.lastLeaderPosition = leader.position
+    }
+    
+    func updateFollowing() {
+        guard let leader = leader else { return }
+        
+        // Record leader's position
+        leaderPositions.append(leader.position)
+        if leaderPositions.count > maxTrailLength {
+            leaderPositions.removeFirst()
+        }
+        
+        // Only move if leader has moved sufficiently
+        let distanceToLeader = hypot(position.x - leader.position.x,
+                                   position.y - leader.position.y)
+        
+        if distanceToLeader > followDistance {
+            let targetIndex = min(Int(followDelay * 10), leaderPositions.count - 1)
+            let targetPosition = leaderPositions[max(0, targetIndex)]
+            
+            // Calculate direction to target
+            let dx = targetPosition.x - position.x
+            let dy = targetPosition.y - position.y
+            let distance = hypot(dx, dy)
+            
+            // Normalize direction and apply speed
+            if distance >=   5 {
+                let directionX = dx / distance
+                let directionY = dy / distance
+                
+                updateFollowingDirection(dx: directionX, dy: directionY)
+                
+                if !isWalking {
+                    isWalking = true
+                }
+               
+                print(currentDirection)
+                physicsBody?.velocity = CGVector(
+                                   dx: (dx / distance) * moveSpeed ,
+                                   dy: (dy / distance) * moveSpeed
+                               )
+            } else {
+                stopMoving()
+            }
+        } else {
+            stopMoving()
+        }
+    }
+    
+    private func updateFollowingDirection(dx: CGFloat, dy: CGFloat) {
+        if abs(dx) > abs(dy) {
+            currentDirection = dx > 0 ? .right : .left
+        } else {
+            currentDirection = dy > 0 ? .up : .down
+        }
+        updateDirection() // Update textures based on direction
     }
 }

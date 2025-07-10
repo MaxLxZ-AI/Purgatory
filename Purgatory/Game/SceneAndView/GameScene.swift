@@ -28,6 +28,16 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    override func update(_ currentTime: TimeInterval) {
+        // Update leader character (Enri) first
+        enri.updateMovement()
+        
+        // Then update follower (Emma)
+//        emma.updateMovement()
+        emma.updateFollowing()
+        
+    }
+    
     private func setUpTrigger() {
         let trigger = DialogTriggerNode(texture: SKTexture(image: .wft),
                                        size: CGSize(width: 100, height: 100),
@@ -64,7 +74,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             character: .Emma, calmState: calmTexture,
             size: CGSize(width: 64, height: 64)
         )
-        emma.position = CGPoint(x: frame.midX + 75, y: frame.midY)
+        emma.setupFollowing(leader: enri)
+
+        // Position Emma behind Enri initially
+        emma.position = CGPoint(x: enri.position.x, y: enri.position.y)
         characters.append(emma)
         addChild(emma)
     }
@@ -73,7 +86,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         let bodyA = contact.bodyA
         let bodyB = contact.bodyB
         
-        // Check for character + trigger radius contact
         if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.firstDialogTrigger) ||
             (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.firstDialogTrigger) {
             
@@ -84,11 +96,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                let radiusNode = triggerNode as? TriggerRadius,
                let dialogTrigger = radiusNode.parentTrigger ?? triggerNode?.parent as? DialogTriggerNode {
                 dialogTrigger.characterDidEnter(character)
-                startFirstDialog(with: character)
+                if !radiusNode.wasDialogTriggered {
+                    startFirstDialog(with: character)
+                    radiusNode.wasDialogTriggered = true
+                }
+                
             }
         }
         
-        // Check for character + dialog trigger contact
         if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.dialogTrigger) ||
            (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.dialogTrigger) {
             
@@ -110,11 +125,9 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     private func handleContact(_ contact: SKPhysicsContact, began: Bool) {
         let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
         
-        // Check for collision with first dialog trigger
         if collision == (PhysicsCategory.character | PhysicsCategory.firstDialogTrigger) {
             handleTriggerContact(contact, began: began, triggerType: .firstDialog)
         }
-        // Check for collision with regular dialog trigger
         else if collision == (PhysicsCategory.character | PhysicsCategory.dialogTrigger) {
             handleTriggerContact(contact, began: began, triggerType: .regular)
         }
@@ -144,12 +157,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func startDialog(with character: Character) {
-        // Your dialog implementation here
         dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEmma))
     }
     
     private func startFirstDialog(with character: Character) {
-        // Your dialog implementation here
         dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEnri))
     }
     
@@ -194,7 +205,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             for node in nodes {
                 if let direction = moveButtons.first(where: { $0.value == node })?.key {
                     enri.startMoving(in: direction)
-                    emma.startMoving(in: direction)
+//                    emma.currentDirection = direction
                     node.alpha = 0.8
                 }
             }
@@ -221,7 +232,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         
         if shouldStop {
             enri.stopMoving()
-            emma.stopMoving()
         }
     }
     
@@ -230,7 +240,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             button.alpha = 0.5
         }
         enri.stopMoving()
-        emma.stopMoving()
     }
 }
 
