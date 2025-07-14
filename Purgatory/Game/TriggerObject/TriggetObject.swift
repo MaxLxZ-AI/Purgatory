@@ -1,8 +1,14 @@
 import SpriteKit
 
+protocol DialogTriggering: SKNode {
+    func characterDidEnter(_ character: Character)
+    func firstDialog()
+    func secondDialog()
+}
+
 class DialogTriggerNode: SKSpriteNode {
     private var charactersInRange: [Character] = []
-    private var dialogManager: DialogManager
+    var dialogManager: DialogManager
     private var triggerRadius: TriggerRadius
     private var isDialogActive = false
     private var activeCharacters: Set<Character> = []
@@ -26,6 +32,8 @@ class DialogTriggerNode: SKSpriteNode {
         
     }
     
+
+    
     private func setupPhysics() {
         physicsBody = SKPhysicsBody(rectangleOf: size)
         physicsBody?.isDynamic = true
@@ -40,6 +48,14 @@ class DialogTriggerNode: SKSpriteNode {
         
         
     }
+    
+    func firstDialog() {
+        
+    }
+    
+    func secondDialog() {
+        
+    }
 
     
     func startDialogBetween(characters: [Character]) {
@@ -49,9 +65,7 @@ class DialogTriggerNode: SKSpriteNode {
     }
 }
 
-extension DialogTriggerNode {
-    
-    
+extension DialogTriggerNode: DialogTriggering {
     func characterDidEnter(_ character: Character) {
         activeCharacters.insert(character)
         checkForDialog()
@@ -62,7 +76,27 @@ extension DialogTriggerNode {
     }
     
     private func checkForDialog() {
-        guard activeCharacters.count >= 1, !isDialogActive else { return }
+        guard activeCharacters.count >= 0, !isDialogActive else { return }
         startDialogBetween(characters: Array(activeCharacters.prefix(2)))
+    }
+    
+
+}
+
+final class BloodWallWriting: DialogTriggerNode {
+    override func firstDialog() {
+        
+        dialogManager.presentSequence([
+            ("Do you see this blood writing", SKTexture(image: .defaultEmma)),
+            ("You are right, we need to guess the word, let select who is gonna do that.", SKTexture(image: .defaultEnri)),
+            ("Yea, let's do it", SKTexture(image: .defaultEmma))
+        ])
+        
+    }
+    
+    override func secondDialog() {
+        dialogManager.presentSequence([
+            ("", SKTexture(image: .defaultEnri))
+        ])
     }
 }

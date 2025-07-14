@@ -171,13 +171,13 @@ final class Emma: Character {
                 let directionX = dx / distance
                 let directionY = dy / distance
                 
-                updateFollowingDirection(dx: directionX, dy: directionY)
+               
                 
                 if !isWalking {
+                    updateFollowingDirection(dx: directionX, dy: directionY)
                     isWalking = true
                 }
                
-                print(currentDirection)
                 physicsBody?.velocity = CGVector(
                                    dx: (dx / distance) * moveSpeed ,
                                    dy: (dy / distance) * moveSpeed
@@ -196,6 +196,6 @@ final class Emma: Character {
         } else {
             currentDirection = dy > 0 ? .up : .down
         }
-        updateDirection() // Update textures based on direction
+        updateDirection()
     }
 }

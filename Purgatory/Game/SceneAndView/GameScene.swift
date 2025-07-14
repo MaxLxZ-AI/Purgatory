@@ -39,7 +39,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func setUpTrigger() {
-        let trigger = DialogTriggerNode(texture: SKTexture(image: .wft),
+        let trigger = BloodWallWriting(texture: SKTexture(image: .wft),
                                        size: CGSize(width: 100, height: 100),
                                         dialogManager: dilogManager, triggerRadius: TriggerRadius(radius: 100))
         trigger.position = CGPoint(x: frame.maxX - 100, y: frame.midY)
@@ -85,84 +85,88 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     func didBegin(_ contact: SKPhysicsContact) {
         let bodyA = contact.bodyA
         let bodyB = contact.bodyB
-        
-        if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.firstDialogTrigger) ||
-            (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.firstDialogTrigger) {
-            
-            let characterNode = bodyA.categoryBitMask == PhysicsCategory.character ? bodyA.node : bodyB.node
-            let triggerNode = bodyA.categoryBitMask == PhysicsCategory.firstDialogTrigger ? bodyA.node : bodyB.node
-            
-            if let character = characterNode as? Character,
-               let radiusNode = triggerNode as? TriggerRadius,
-               let dialogTrigger = radiusNode.parentTrigger ?? triggerNode?.parent as? DialogTriggerNode {
-                dialogTrigger.characterDidEnter(character)
-                if !radiusNode.wasDialogTriggered {
-                    startFirstDialog(with: character)
-                    radiusNode.wasDialogTriggered = true
-                }
-                
-            }
-        }
-        
-        if (bodyA.categoryBitMask == PhysicsCategory.character && bodyB.categoryBitMask == PhysicsCategory.dialogTrigger) ||
-           (bodyB.categoryBitMask == PhysicsCategory.character && bodyA.categoryBitMask == PhysicsCategory.dialogTrigger) {
-            
-            let characterNode = bodyA.categoryBitMask == PhysicsCategory.character ? bodyA.node : bodyB.node
-            let triggerNode = bodyA.categoryBitMask == PhysicsCategory.dialogTrigger ? bodyA.node : bodyB.node
-            
-            if let character = characterNode as? Character,
-               let dialogTrigger = triggerNode as? DialogTriggerNode {
-                dialogTrigger.characterDidEnter(character)
-                startDialog(with: character)
-            }
-        }
+
+        handleContact(characterBody: bodyA, otherBody: bodyB)
+        handleContact(characterBody: bodyB, otherBody: bodyA)
     }
     
-    func didEnd(_ contact: SKPhysicsContact) {
-//        handleContact(contact, began: false)
-    }
-    
-    private func handleContact(_ contact: SKPhysicsContact, began: Bool) {
-        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
-        
-        if collision == (PhysicsCategory.character | PhysicsCategory.firstDialogTrigger) {
-            handleTriggerContact(contact, began: began, triggerType: .firstDialog)
+    private func handleContact(characterBody: SKPhysicsBody, otherBody: SKPhysicsBody) {
+        guard characterBody.categoryBitMask == PhysicsCategory.character,
+              let character = characterBody.node as? Character else { return }
+
+        // First dialog trigger with radius
+        if otherBody.categoryBitMask == PhysicsCategory.firstDialogTrigger,
+           let radiusNode = otherBody.node as? TriggerRadius,
+           let trigger = radiusNode.parentTrigger ?? otherBody.node?.parent as? DialogTriggering {
+
+            trigger.characterDidEnter(character)
+            
+            if !radiusNode.wasDialogTriggered {
+                enri.stopMoving()
+                trigger.firstDialog()
+                radiusNode.wasDialogTriggered = true
+            }
         }
-        else if collision == (PhysicsCategory.character | PhysicsCategory.dialogTrigger) {
-            handleTriggerContact(contact, began: began, triggerType: .regular)
+
+        // Dialog trigger without radius
+        if otherBody.categoryBitMask == PhysicsCategory.dialogTrigger,
+           let trigger = otherBody.node as? DialogTriggering {
+            enri.stopMoving()
+            trigger.characterDidEnter(character)
+            trigger.secondDialog()
         }
     }
 
-    private func handleTriggerContact(_ contact: SKPhysicsContact, began: Bool, triggerType: TriggerType) {
-        let characterNode = contact.bodyA.categoryBitMask == PhysicsCategory.character ?
-            contact.bodyA.node : contact.bodyB.node
-        
-        if let character = characterNode as? Character {
-            if began {
-                switch triggerType {
-                case .firstDialog:
-                    startFirstDialog(with: character)
-                case .regular:
-                    startDialog(with: character)
-                }
-            } else {
-                characters.removeAll()
-            }
-        }
-    }
-
-    enum TriggerType {
-        case firstDialog
-        case regular
-    }
     
-    private func startDialog(with character: Character) {
-        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEmma))
-    }
-    
-    private func startFirstDialog(with character: Character) {
-        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEnri))
-    }
+//    func didEnd(_ contact: SKPhysicsContact) {
+////        handleContact(contact, began: false)
+//    }
+//    
+//    private func handleContact(_ contact: SKPhysicsContact, began: Bool) {
+//        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+//        
+//        if collision == (PhysicsCategory.character | PhysicsCategory.firstDialogTrigger) {
+//            handleTriggerContact(contact, began: began, triggerType: .firstDialog)
+//        }
+//        else if collision == (PhysicsCategory.character | PhysicsCategory.dialogTrigger) {
+//            handleTriggerContact(contact, began: began, triggerType: .regular)
+//        }
+//    }
+//
+//    private func handleTriggerContact(_ contact: SKPhysicsContact, began: Bool, triggerType: TriggerType) {
+//        let characterNode = contact.bodyA.categoryBitMask == PhysicsCategory.character ?
+//            contact.bodyA.node : contact.bodyB.node
+//        let node = contact.bodyA.categoryBitMask == PhysicsCategory.dialogTrigger ?
+//            contact.bodyA.node : contact.bodyB.node
+//
+//        
+//        if let character = characterNode as? Character, let bloodWriting = node as? BloodWallWriting {
+//            if began {
+//                switch triggerType {
+//                case .firstDialog:
+//                    startFirstDialog(with: character)
+//                case .regular:
+////                    startDialog(with: character)
+//                    bloodWriting.secondDialog()
+//                }
+//            } else {
+//                characters.removeAll()
+//            }
+//        }
+//    }
+//
+//    enum TriggerType {
+//        case firstDialog
+//        case regular
+//    }
+//    
+//    private func startDialog(with character: Character) {
+//        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEmma))
+//    }
+//    
+//    private func startFirstDialog(with character: Character) {
+//        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEnri))
+//    }
     
     private func setupControlButtons() {
         let buttonSize = CGSize(width: 80, height: 80)
@@ -196,6 +200,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if dilogManager.isDialogActive() {
+            dilogManager.handleTap()
+            return
+        }
 //        dilogManager.present(text: "The first version of this screen, something myght not work properly", texture: SKTexture(image: .defaultEnri))
         for touch in touches {
             let location = touch.location(in: self)
