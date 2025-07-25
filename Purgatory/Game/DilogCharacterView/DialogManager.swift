@@ -7,6 +7,8 @@ final class DialogManager {
     private var currentDialog: DilogCharacterView?
     private var isPresenting = false
 
+    var onDialogEnd: (() -> Void)?
+
     init(scene: SKScene? = nil) {
         self.scene = scene
     }
@@ -26,7 +28,11 @@ final class DialogManager {
     }
 
     private func showNextDialog() {
-        guard let scene = scene, !dialogQueue.isEmpty else { return }
+        guard let scene = scene, !dialogQueue.isEmpty else {
+            // Очередь пуста — диалоги закончились
+            onDialogEnd?()
+            return
+        }
 
         let (text, texture) = dialogQueue.removeFirst()
 

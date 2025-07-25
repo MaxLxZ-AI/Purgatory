@@ -2,12 +2,12 @@ import SpriteKit
 
 protocol DialogTriggering: SKNode {
     func characterDidEnter(_ character: Character)
-    func firstDialog()
-    func secondDialog()
+    func firstDialog(onDialogEnd: (() -> Void)?)
+    func secondDialog(onDialogEnd: (() -> Void)?)
 }
 
 class DialogTriggerNode: SKSpriteNode {
-    private var charactersInRange: [Character] = []
+    var charactersInRange: [Character] = []
     var dialogManager: DialogManager
     private var triggerRadius: TriggerRadius
     private var isDialogActive = false
@@ -49,11 +49,11 @@ class DialogTriggerNode: SKSpriteNode {
         
     }
     
-    func firstDialog() {
+    func firstDialog(onDialogEnd: (() -> Void)?) {
         
     }
     
-    func secondDialog() {
+    func secondDialog(onDialogEnd: (() -> Void)?) {
         
     }
 
@@ -84,19 +84,26 @@ extension DialogTriggerNode: DialogTriggering {
 }
 
 final class BloodWallWriting: DialogTriggerNode {
-    override func firstDialog() {
-        
+    override func firstDialog(onDialogEnd: (() -> Void)?) {
         dialogManager.presentSequence([
             ("Do you see this blood writing", SKTexture(image: .defaultEmma)),
             ("You are right, we need to guess the word, let select who is gonna do that.", SKTexture(image: .defaultEnri)),
             ("Yea, let's do it", SKTexture(image: .defaultEmma))
         ])
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
         
     }
+
     
-    override func secondDialog() {
+    override func secondDialog(onDialogEnd: (() -> Void)?) {
         dialogManager.presentSequence([
             ("", SKTexture(image: .defaultEnri))
         ])
+        
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
     }
 }

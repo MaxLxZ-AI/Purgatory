@@ -97,6 +97,27 @@ class Character: SKSpriteNode {
         physicsBody?.velocity = .zero
         currentDirection = .none
     }
+    
+    func moveToPosition(_ position: CGPoint, duration: TimeInterval, completion: (() -> Void)? = nil) {
+        // Определяем направление для анимации
+        let dx = position.x - self.position.x
+        let dy = position.y - self.position.y
+        if abs(dx) > abs(dy) {
+            currentDirection = dx > 0 ? .right : .left
+        } else {
+            currentDirection = dy > 0 ? .up : .down
+        }
+        updateDirection()
+        isWalking = true
+
+        let moveAction = SKAction.move(to: position, duration: duration)
+        let stopAction = SKAction.run { [weak self] in
+            self?.isWalking = false
+            completion?()
+        }
+        let sequence = SKAction.sequence([moveAction, stopAction])
+        run(sequence)
+    }
 }
 
 
