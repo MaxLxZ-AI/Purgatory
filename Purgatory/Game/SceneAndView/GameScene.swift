@@ -22,20 +22,25 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         setUpBackground()
         setUpEnri()
         setUpEmma()
+
         setupControlButtons()
         dilogManager = DialogManager(scene: self)
         setUpTrigger()
+        startIntroCutscene()
         
     }
     
     override func update(_ currentTime: TimeInterval) {
-        // Update leader character (Enri) first
         enri.updateMovement()
         
         // Then update follower (Emma)
 //        emma.updateMovement()
         emma.updateFollowing()
-        
+    }
+    
+    func startIntroCutscene() {
+        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma)
+        dilogManager.playCutscene(introCutscene)
     }
     
     private func setUpTrigger() {
@@ -104,7 +109,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             if !radiusNode.wasDialogTriggered {
                 enri.stopMoving()
                 trigger.firstDialog(onDialogEnd: { [self] in
-                    enri.moveToPosition(CGPoint(x: enri.position.x + 150, y: enri.position.y), duration: 2)
+                    enri.moveToPosition(CGPoint(x: enri.position.x + 150, y: enri.position.y), duration: 2, completion: enri.stopMoving)
                 })
                 radiusNode.wasDialogTriggered = true
             }
@@ -116,7 +121,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             enri.stopMoving()
             trigger.characterDidEnter(character)
             trigger.secondDialog(onDialogEnd: { [self] in
-                enri.moveToPosition(CGPoint(x: enri.position.x - 300, y: enri.position.y), duration: 5)
+                enri.moveToPosition(CGPoint(x: enri.position.x - 300, y: enri.position.y), duration: 5, completion: enri.stopMoving)
             })
             
         }
