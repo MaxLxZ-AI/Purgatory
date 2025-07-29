@@ -109,7 +109,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             if !radiusNode.wasDialogTriggered {
                 enri.stopMoving()
                 trigger.firstDialog(onDialogEnd: { [self] in
-                    enri.moveToPosition(CGPoint(x: enri.position.x + 150, y: enri.position.y), duration: 2, completion: enri.stopMoving)
+                    enri.moveToPosition(CGPoint(x: enri.position.x + 150, y: enri.position.y), duration: 2)
                 })
                 radiusNode.wasDialogTriggered = true
             }
@@ -121,7 +121,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             enri.stopMoving()
             trigger.characterDidEnter(character)
             trigger.secondDialog(onDialogEnd: { [self] in
-                enri.moveToPosition(CGPoint(x: enri.position.x - 300, y: enri.position.y), duration: 5, completion: enri.stopMoving)
+                enri.moveToPosition(CGPoint(x: enri.position.x - 300, y: enri.position.y), duration: 5)
             })
             
         }
