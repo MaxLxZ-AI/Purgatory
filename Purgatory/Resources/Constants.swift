@@ -128,4 +128,5 @@ struct PhysicsCategory {
     static let character: UInt32 = 0b1
     static let dialogTrigger: UInt32 = 0b10
     static let firstDialogTrigger: UInt32 = 0b100
+    static let wall: UInt32 = 0b1000
 }

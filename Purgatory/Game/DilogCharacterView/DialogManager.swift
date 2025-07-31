@@ -3,11 +3,11 @@ import SpriteKit
 // Структура для действий в катсцене
 struct CutsceneAction {
     enum ActionType {
-        case moveCharacter(Character, to: CGPoint, duration: TimeInterval)
+        case moveCharacter(GameCharacter, to: CGPoint, duration: TimeInterval)
         case showDialog(String, texture: SKTexture?)
         case wait(TimeInterval)
         case cameraMove(to: CGPoint, duration: TimeInterval)
-        case playAnimation(Character, animation: String)
+        case playAnimation(GameCharacter, animation: String)
     }
     
     let type: ActionType
@@ -155,7 +155,7 @@ final class DialogManager {
     }
     
     // Методы для создания катсцен
-    func createIntroCutscene(enri: Character, emma: Character) -> [CutsceneAction] {
+    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter) -> [CutsceneAction] {
         return [
             CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 0),
             CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x - 100, y: enri.position.y), duration: 2.0), delay: 0),

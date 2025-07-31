@@ -1,7 +1,6 @@
 import SpriteKit
 
 
-
 final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var parentFortuneMergeView: GameFortuneMergeView?
     
@@ -9,20 +8,22 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var emma: Emma!
     var moveLeftButton: SKSpriteNode!
     var moveRightButton: SKSpriteNode!
+    var roomManager: RoomManager!
     
     var moveButtons: [Direction: MovementButton] = [:]
     
     var dilogManager: DialogManager!
     
-    private var characters: [Character] = []
+    private var characters: [GameCharacter] = []
     private var dialogTriggers: [DialogTriggerNode] = []
     
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
-        setUpBackground()
+        roomManager = RoomManager(scene: self)
+        roomManager.loadRoom(withID: "room1")
+//        setUpBackground()
         setUpEnri()
         setUpEmma()
-
         setupControlButtons()
         dilogManager = DialogManager(scene: self)
         setUpTrigger()
@@ -97,7 +98,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func handleContact(characterBody: SKPhysicsBody, otherBody: SKPhysicsBody) {
         guard characterBody.categoryBitMask == PhysicsCategory.character,
-              let character = characterBody.node as? Character else { return }
+              let character = characterBody.node as? GameCharacter else { return }
 
         // First dialog trigger with radius
         if otherBody.categoryBitMask == PhysicsCategory.firstDialogTrigger,
@@ -115,7 +116,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             }
         }
 
-        // Dialog trigger without radius
         if otherBody.categoryBitMask == PhysicsCategory.dialogTrigger,
            let trigger = otherBody.node as? DialogTriggering {
             enri.stopMoving()
@@ -125,6 +125,53 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             })
             
         }
+        if otherBody.categoryBitMask == PhysicsCategory.wall {
+            handleWallCollision(character: character)
+        }
+    }
+    
+    private func handleWallCollision(character: GameCharacter) {
+        // Останавливаем движение персонажа
+        character.stopMoving()
+//        
+//        // Определяем направление отскока на основе последнего направления движения
+//        let bounceDistance: CGFloat = 15
+//        var bounceX: CGFloat = 0
+//        var bounceY: CGFloat = 0
+//        
+//        switch character.currentDirection {
+//        case .left:
+//            bounceX = bounceDistance
+//        case .right:
+//            bounceX = -bounceDistance
+//        case .up:
+//            bounceY = -bounceDistance
+//        case .down:
+//            bounceY = bounceDistance
+//        case .none:
+//            // Если нет направления, используем последнее известное направление
+//            switch character.lastDirection {
+//            case .left:
+//                bounceX = bounceDistance
+//            case .right:
+//                bounceX = -bounceDistance
+//            case .up:
+//                bounceY = -bounceDistance
+//            case .down:
+//                bounceY = bounceDistance
+//            case .none:
+//                bounceX = -10 // По умолчанию
+//            }
+//        }
+//        
+//        // Добавляем отскок от стены для визуального эффекта
+//        let bounceAction = SKAction.sequence([
+//            SKAction.moveBy(x: bounceX, y: bounceY, duration: 0.1),
+//            SKAction.moveBy(x: -bounceX, y: -bounceY, duration: 0.1)
+//        ])
+//        character.run(bounceAction)
+        
+        print("Enri hit a wall and stopped. Direction: \(character.currentDirection)")
     }
 
     

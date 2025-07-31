@@ -1,17 +1,17 @@
 import SpriteKit
 
-protocol DialogTriggering: SKNode {
-    func characterDidEnter(_ character: Character)
+protocol DialogTriggering {
+    func characterDidEnter(_ character: GameCharacter)
     func firstDialog(onDialogEnd: (() -> Void)?)
     func secondDialog(onDialogEnd: (() -> Void)?)
 }
 
-class DialogTriggerNode: SKSpriteNode {
-    var charactersInRange: [Character] = []
+class DialogTriggerNode: SKSpriteNode, DialogTriggering {
+    var charactersInRange: [GameCharacter] = []
     var dialogManager: DialogManager
     private var triggerRadius: TriggerRadius
     private var isDialogActive = false
-    private var activeCharacters: Set<Character> = []
+    private var activeCharacters: Set<GameCharacter> = []
     
     init(texture: SKTexture, size: CGSize, dialogManager: DialogManager, triggerRadius: TriggerRadius) {
         self.dialogManager = dialogManager
@@ -43,7 +43,7 @@ class DialogTriggerNode: SKSpriteNode {
         physicsBody?.contactTestBitMask = PhysicsCategory.character
     }
     
-    func update(with characters: [Character]) {
+    func update(with characters: [GameCharacter]) {
         guard !isDialogActive else { return }
         
         
@@ -57,21 +57,12 @@ class DialogTriggerNode: SKSpriteNode {
         
     }
 
-    
-    func startDialogBetween(characters: [Character]) {
-        isDialogActive = true
-        
-        characters.forEach { $0.stopMoving() }
-    }
-}
-
-extension DialogTriggerNode: DialogTriggering {
-    func characterDidEnter(_ character: Character) {
+    func characterDidEnter(_ character: GameCharacter) {
         activeCharacters.insert(character)
         checkForDialog()
     }
     
-    func characterDidExit(_ character: Character) {
+    func characterDidExit(_ character: GameCharacter) {
         activeCharacters.remove(character)
     }
     
@@ -80,7 +71,11 @@ extension DialogTriggerNode: DialogTriggering {
         startDialogBetween(characters: Array(activeCharacters.prefix(2)))
     }
     
-
+    func startDialogBetween(characters: [GameCharacter]) {
+        isDialogActive = true
+        
+        characters.forEach { $0.stopMoving() }
+    }
 }
 
 final class BloodWallWriting: DialogTriggerNode {
