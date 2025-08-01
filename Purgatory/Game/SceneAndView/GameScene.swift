@@ -20,15 +20,23 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         dilogManager = DialogManager(scene: self)
-        roomManager = RoomManager(scene: self, dialogManager: dilogManager)
+        loadCharacters()
+        roomManager = RoomManager(scene: self, dialogManager: dilogManager, characters: characters)
         roomManager.loadRoom(withID: "room1")
 //        setUpBackground()
+        loadGame()
+
+        
+    }
+    
+    private func loadCharacters() {
         setUpEnri()
         setUpEmma()
+    }
+    
+    private func loadGame() {
         setupControlButtons()
-        setUpTrigger()
         startIntroCutscene()
-        
     }
     
     override func update(_ currentTime: TimeInterval) {
@@ -66,8 +74,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             size: CGSize(width: 64, height: 64)
         )
         characters.append(enri)
-        enri.position = CGPoint(x: frame.midX, y: frame.midY)
-        addChild(enri)
+
     }
     
     private func setUpEmma() {
@@ -79,10 +86,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         )
         emma.setupFollowing(leader: enri)
 
-        // Position Emma behind Enri initially
-        emma.position = CGPoint(x: enri.position.x, y: enri.position.y)
         characters.append(emma)
-        addChild(emma)
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -125,6 +129,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
             if door.id == "door_1" {
                 roomManager.loadRoom(withID: "room2")
+                loadGame()
             }
             
         }

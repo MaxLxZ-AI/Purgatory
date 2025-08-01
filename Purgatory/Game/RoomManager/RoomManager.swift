@@ -14,12 +14,14 @@ class RoomManager {
     private(set) var rooms: [String: ASCIIRoom] = [:]
     private weak var scene: SKScene?
     private weak var dialogManager: DialogManager?
+    private var characters: [GameCharacter]?
     private var doorCounter: Int = 0
 
     let tileSize: CGFloat = 32
     private let halfTileSize: CGFloat = 16 // tileSize / 2
     
-    init(scene: SKScene, dialogManager: DialogManager? = nil) {
+    init(scene: SKScene, dialogManager: DialogManager? = nil, characters: [GameCharacter]) {
+        self.characters = characters
         self.scene = scene
         self.dialogManager = dialogManager
         loadRooms()
@@ -191,15 +193,17 @@ class RoomManager {
             let doorId = "door_\(doorCounter)"
             let door = Door(id: doorId, wasEntered: false, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
             return door
-        case "P":
-            let player = SKSpriteNode(color: .green, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
-            player.name = "player"
+        case "E":
+            guard let enri = characters?[0], enri.character == .Enri else {
+                return nil
+            }
+            return enri
             
-            player.anchorPoint = CGPoint(x: 0.5, y: 0.5) // Центр
-            player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
-            player.physicsBody?.categoryBitMask = 0x1 << 0
-            player.physicsBody?.contactTestBitMask = 0x1 << 1
-            return player
+        case "M":
+            guard let emma = characters?[1], emma.character == .Emma else {
+                return nil
+            }
+            return emma
             
             
         case "T":
