@@ -13,12 +13,15 @@ struct ASCIIRoom: Codable {
 class RoomManager {
     private(set) var rooms: [String: ASCIIRoom] = [:]
     private weak var scene: SKScene?
+    private weak var dialogManager: DialogManager?
+    private var doorCounter: Int = 0
 
     let tileSize: CGFloat = 32
     private let halfTileSize: CGFloat = 16 // tileSize / 2
     
-    init(scene: SKScene) {
+    init(scene: SKScene, dialogManager: DialogManager? = nil) {
         self.scene = scene
+        self.dialogManager = dialogManager
         loadRooms()
     }
     
@@ -101,7 +104,7 @@ class RoomManager {
             id: "room1",
             layout: [
                 "##########",
-                "#..C....D#",
+                "#..C.T..D#",
                 "#........#",
                 "#..P.....#",
                 "##########"
@@ -144,6 +147,7 @@ class RoomManager {
         
         print("Loading room: \(id)")
         scene.removeAllChildren()
+        doorCounter = 0 // Сбрасываем счетчик дверей для новой комнаты
 
         let numRows = room.layout.count
         for (rowIndex, row) in room.layout.enumerated() {
@@ -154,7 +158,7 @@ class RoomManager {
                     x: CGFloat(colIndex) * tileSize + halfTileSize,
                     y: CGFloat(numRows - rowIndex - 1) * tileSize + halfTileSize
                 )
-                if let node = createNode(for: char) {
+                if let node = createNode(for: char, rowIndex: rowIndex, colIndex: colIndex) {
                     node.position = position
                     scene.addChild(node)
                 }
@@ -163,7 +167,7 @@ class RoomManager {
         print("Room \(id) loaded successfully")
     }
 
-    private func createNode(for char: Character) -> SKNode? {
+    private func createNode(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
         switch char {
         case "#":
             let wall = SKSpriteNode(color: .brown, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
@@ -173,7 +177,7 @@ class RoomManager {
             wall.physicsBody?.categoryBitMask = PhysicsCategory.wall
             wall.physicsBody?.collisionBitMask = PhysicsCategory.character
             wall.physicsBody?.contactTestBitMask = PhysicsCategory.character
-            wall.anchorPoint = CGPoint(x: 0.5, y: 0.5) // Центр (по умолчанию)
+            wall.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             return wall
         case ".":
             return nil
@@ -183,11 +187,9 @@ class RoomManager {
             crate.anchorPoint = CGPoint(x: 0.5, y: 0.5) // Центр
             return crate
         case "D":
-            let door = SKSpriteNode(color: .blue, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
-            door.name = "door_room2"
-            door.anchorPoint = CGPoint(x: 0.5, y: 0.5) // Центр
-            door.physicsBody = SKPhysicsBody(rectangleOf: door.size)
-            door.physicsBody?.isDynamic = false
+            doorCounter += 1
+            let doorId = "door_\(doorCounter)"
+            let door = Door(id: doorId, wasEntered: false, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
             return door
         case "P":
             let player = SKSpriteNode(color: .green, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
@@ -198,12 +200,25 @@ class RoomManager {
             player.physicsBody?.categoryBitMask = 0x1 << 0
             player.physicsBody?.contactTestBitMask = 0x1 << 1
             return player
+            
+            
+        case "T":
+            guard let dialogManager = dialogManager else {
+                print("Warning: DialogManager not available for trigger creation")
+                return nil
+            }
+            let trigger = BloodWallWriting(texture: SKTexture(image: .wft),
+                                           size: CGSize(width: 100, height: 100),
+                                            dialogManager: dialogManager, triggerRadius: TriggerRadius(radius: 100))
+            
+            
+            return trigger
         default:
             return nil
         }
     }
     
-    private func createNodeWithCornerAnchor(for char: Character) -> SKNode? {
+    private func createNodeWithCornerAnchor(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
         switch char {
         case "#":
             let wall = SKSpriteNode(color: .brown, size: CGSize(width: tileSize, height: tileSize))
@@ -217,11 +232,9 @@ class RoomManager {
             crate.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
             return crate
         case "D":
-            let door = SKSpriteNode(color: .blue, size: CGSize(width: tileSize, height: tileSize))
-            door.name = "door_room2"
-            door.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
-            door.physicsBody = SKPhysicsBody(rectangleOf: door.size)
-            door.physicsBody?.isDynamic = false
+            doorCounter += 1
+            let doorId = "door_\(doorCounter)"
+            let door = Door(id: doorId, wasEntered: false, size: CGSize(width: tileSize, height: tileSize))
             return door
         case "P":
             let player = SKSpriteNode(color: .green, size: CGSize(width: tileSize, height: tileSize))

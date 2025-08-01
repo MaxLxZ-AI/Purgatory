@@ -19,13 +19,13 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
-        roomManager = RoomManager(scene: self)
+        dilogManager = DialogManager(scene: self)
+        roomManager = RoomManager(scene: self, dialogManager: dilogManager)
         roomManager.loadRoom(withID: "room1")
 //        setUpBackground()
         setUpEnri()
         setUpEmma()
         setupControlButtons()
-        dilogManager = DialogManager(scene: self)
         setUpTrigger()
         startIntroCutscene()
         
@@ -45,12 +45,9 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func setUpTrigger() {
-        let trigger = BloodWallWriting(texture: SKTexture(image: .wft),
-                                       size: CGSize(width: 100, height: 100),
-                                        dialogManager: dilogManager, triggerRadius: TriggerRadius(radius: 100))
-        trigger.position = CGPoint(x: frame.maxX - 100, y: frame.midY)
-        addChild(trigger)
-        dialogTriggers.append(trigger)
+
+
+//        dialogTriggers.append(trigger)
     }
     
     private func setUpBackground() {
@@ -125,14 +122,17 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             })
             
         }
-        if otherBody.categoryBitMask == PhysicsCategory.wall {
-            handleWallCollision(character: character)
+        if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
+            if door.id == "door_1" {
+                roomManager.loadRoom(withID: "room2")
+            }
+            
         }
     }
     
     private func handleWallCollision(character: GameCharacter) {
         // Останавливаем движение персонажа
-        character.stopMoving()
+//        character.stopMoving()
 //        
 //        // Определяем направление отскока на основе последнего направления движения
 //        let bounceDistance: CGFloat = 15

@@ -35,8 +35,8 @@ class GameCharacter: SKSpriteNode {
         physicsBody?.affectedByGravity = false
         physicsBody?.allowsRotation = false
         physicsBody?.categoryBitMask = PhysicsCategory.character
-        physicsBody?.collisionBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.wall
-        physicsBody?.contactTestBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.firstDialogTrigger | PhysicsCategory.wall
+        physicsBody?.collisionBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.wall | PhysicsCategory.door
+        physicsBody?.contactTestBitMask = PhysicsCategory.dialogTrigger | PhysicsCategory.firstDialogTrigger | PhysicsCategory.wall | PhysicsCategory.door
 
         
         createWalkingAction()
