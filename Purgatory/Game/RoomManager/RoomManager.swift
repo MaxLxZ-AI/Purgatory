@@ -15,12 +15,13 @@ class RoomManager {
     private weak var scene: SKScene?
     private weak var dialogManager: DialogManager?
     private var characters: [GameCharacter]?
-    private var doorCounter: Int = 0
+    var doorCounter: Int = 0
+    var currentID: String = ""
 
     let tileSize: CGFloat = 32
     private let halfTileSize: CGFloat = 16 // tileSize / 2
     
-    init(scene: SKScene, dialogManager: DialogManager? = nil, characters: [GameCharacter]) {
+    init(scene: SKScene, dialogManager: DialogManager? = nil, characters: [GameCharacter]? = nil) {
         self.characters = characters
         self.scene = scene
         self.dialogManager = dialogManager
@@ -124,6 +125,10 @@ class RoomManager {
         return Array(rooms.keys)
     }
     
+    func setCharacters(_ characters: [GameCharacter]) {
+        self.characters = characters
+    }
+    
     // Альтернативный метод для позиционирования по левому нижнему углу
     // Используйте этот метод, если хотите позиционировать объекты по углам
     private func positionForCornerAlignment(colIndex: Int, rowIndex: Int, numRows: Int) -> CGPoint {
@@ -149,7 +154,8 @@ class RoomManager {
         
         print("Loading room: \(id)")
         scene.removeAllChildren()
-        doorCounter = 0 // Сбрасываем счетчик дверей для новой комнаты
+        currentID = id
+        doorCounter = 0
 
         let numRows = room.layout.count
         for (rowIndex, row) in room.layout.enumerated() {

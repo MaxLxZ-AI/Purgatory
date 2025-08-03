@@ -18,7 +18,7 @@ class DialogTriggerNode: SKSpriteNode, DialogTriggering {
         self.triggerRadius = triggerRadius
         super.init(texture: texture, color: .clear, size: size)
         setupPhysics()
-        setUpRadius()
+//        setUpRadius()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -31,8 +31,6 @@ class DialogTriggerNode: SKSpriteNode, DialogTriggering {
         addChild(triggerRadius)
         
     }
-    
-
     
     private func setupPhysics() {
         physicsBody = SKPhysicsBody(rectangleOf: size)

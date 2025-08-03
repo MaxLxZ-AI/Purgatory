@@ -1,6 +1,5 @@
 import SpriteKit
 
-// Структура для действий в катсцене
 struct CutsceneAction {
     enum ActionType {
         case moveCharacter(GameCharacter, to: CGPoint, duration: TimeInterval)
@@ -8,13 +7,13 @@ struct CutsceneAction {
         case wait(TimeInterval)
         case cameraMove(to: CGPoint, duration: TimeInterval)
         case playAnimation(GameCharacter, animation: String)
+        case runBlock(() -> Void)
     }
     
     let type: ActionType
     let delay: TimeInterval
 }
 
-// Менеджер катсцен
 class CutsceneManager {
     private var actions: [CutsceneAction] = []
     private var currentIndex = 0
@@ -36,16 +35,25 @@ class CutsceneManager {
     
     func executeNextAction() {
         guard currentIndex < actions.count else {
+//            print("Cutscene finished - all actions completed")
             isPlaying = false
             return
         }
         
         let action = actions[currentIndex]
+//        print("Executing cutscene action \(currentIndex + 1)/\(actions.count) with delay: \(action.delay)")
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + action.delay) {
             if self.dialogManager.currentDialog == nil {
                 self.executeAction(action)
                 self.currentIndex += 1
                 self.executeNextAction()
+            } else {
+//                print("Dialog is active, waiting for dialog to finish before executing action")
+                // Попробуем снова через небольшую задержку
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.executeNextAction()
+                }
             }
         }
     }
@@ -53,20 +61,28 @@ class CutsceneManager {
     private func executeAction(_ action: CutsceneAction) {
         switch action.type {
         case .moveCharacter(let character, let position, let duration):
+//            print("Moving character to position: \(position)")
+            scene?.isUserInteractionEnabled = false
             character.moveToPosition(position, duration: duration) {
                 character.stopMoving()
+                self.scene?.isUserInteractionEnabled = true
             }
         case .showDialog(let text, let texture):
+//            print("Showing dialog: \(text)")
             dialogManager.presentSequence([(text, texture)])
         case .wait(let duration):
-            // Just wait
+//            print("Waiting for \(duration) seconds")
             break
         case .cameraMove(let position, let duration):
-            // Implement camera movement if needed
+//            print("Moving camera to position: \(position)")
             break
         case .playAnimation(let character, let animation):
-            // Implement animation if needed
+//            print("Playing animation: \(animation)")
             break
+        case .runBlock(let block):
+//            print("Executing cutscene block")
+            block()
+//            print("Cutscene block executed successfully")
         }
     }
     
@@ -97,6 +113,7 @@ final class DialogManager {
     }
 
     func presentSequence(_ dialogs: [(String, SKTexture?)]) {
+//        print("Presenting sequence with \(dialogs.count) dialogs")
         dialogQueue = dialogs
         isPresenting = false
         showNextDialog()
@@ -112,12 +129,13 @@ final class DialogManager {
 
     private func showNextDialog() {
         guard let scene = scene, !dialogQueue.isEmpty else {
-            // Очередь пуста — диалоги закончились
+//            print("No more dialogs to show, calling onDialogEnd")
             onDialogEnd?()
             return
         }
 
         let (text, texture) = dialogQueue.removeFirst()
+//        print("Showing dialog: \(text)")
 
         let dialog = DilogCharacterView(
             text: text,
@@ -136,17 +154,21 @@ final class DialogManager {
 
     private func dismissCurrentDialog() {
         guard let dialog = currentDialog else { return }
+//        print("Dismissing current dialog")
         isPresenting = false
         dialog.run(.sequence([
             .fadeOut(withDuration: 0.3),
             .removeFromParent()
         ])) { [weak self] in
+//            print("Dialog dismissed, currentDialog set to nil")
             self?.currentDialog = nil
             if self?.cutsceneManager?.isPlaying == true {
+//                print("Cutscene is playing, executing next action")
                 self?.cutsceneManager?.executeNextAction()
+            } else {
+//                print("Cutscene is not playing, showing next dialog if available")
+                self?.showNextDialog()
             }
-            print(self?.cutsceneManager?.isPlaying)
-            self?.showNextDialog()
         }
     }
 
@@ -154,17 +176,22 @@ final class DialogManager {
         return currentDialog != nil || !dialogQueue.isEmpty
     }
     
-    // Методы для создания катсцен
-    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter) -> [CutsceneAction] {
-        return [
+    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter, onEndOfCutscene: @escaping () -> Void) -> [CutsceneAction] {
+//        print("Creating intro cutscene with onEndOfCutscene callback")
+        let actions = [
             CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 0),
-            CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x - 100, y: enri.position.y), duration: 2.0), delay: 0),
-            CutsceneAction(type: .showDialog("Let's explore together!", texture: SKTexture(image: .defaultEmma)), delay: 0),
-            CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x + 100, y: enri.position.y), duration: 2), delay: 0)
+            CutsceneAction(type: .moveCharacter(emma, to: CGPoint(x: emma.position.x - 100, y: emma.position.y), duration: 2.0), delay: 0),
+            CutsceneAction(type: .showDialog("Let's explore together!", texture: SKTexture(image: .defaultEmma)), delay: 2),
+            CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x + 100, y: enri.position.y), duration: 2), delay: 0),
+            CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 2) // Assuming this is the end
         ]
+        
+//        print("Created cutscene with \(actions.count) actions")
+        return actions
     }
     
     func playCutscene(_ actions: [CutsceneAction]) {
+//        print("Playing cutscene with \(actions.count) actions")
         cutsceneManager?.playCutscene(actions)
     }
     

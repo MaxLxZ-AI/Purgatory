@@ -42,13 +42,15 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: TimeInterval) {
         enri.updateMovement()
         
-        // Then update follower (Emma)
 //        emma.updateMovement()
         emma.updateFollowing()
     }
     
     func startIntroCutscene() {
-        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma)
+        emma.removeLeader()
+        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, onEndOfCutscene: { [self] in
+            emma.setupFollowing(leader: enri)
+        })
         dilogManager.playCutscene(introCutscene)
     }
     
@@ -127,108 +129,49 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             
         }
         if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
-            if door.id == "door_1" {
-                roomManager.loadRoom(withID: "room2")
-                loadGame()
-            }
-            
+            handleDoorCollision(door: door)
         }
     }
     
-    private func handleWallCollision(character: GameCharacter) {
-        // Останавливаем движение персонажа
-//        character.stopMoving()
-//        
-//        // Определяем направление отскока на основе последнего направления движения
-//        let bounceDistance: CGFloat = 15
-//        var bounceX: CGFloat = 0
-//        var bounceY: CGFloat = 0
-//        
-//        switch character.currentDirection {
-//        case .left:
-//            bounceX = bounceDistance
-//        case .right:
-//            bounceX = -bounceDistance
-//        case .up:
-//            bounceY = -bounceDistance
-//        case .down:
-//            bounceY = bounceDistance
-//        case .none:
-//            // Если нет направления, используем последнее известное направление
-//            switch character.lastDirection {
-//            case .left:
-//                bounceX = bounceDistance
-//            case .right:
-//                bounceX = -bounceDistance
-//            case .up:
-//                bounceY = -bounceDistance
-//            case .down:
-//                bounceY = bounceDistance
-//            case .none:
-//                bounceX = -10 // По умолчанию
-//            }
-//        }
-//        
-//        // Добавляем отскок от стены для визуального эффекта
-//        let bounceAction = SKAction.sequence([
-//            SKAction.moveBy(x: bounceX, y: bounceY, duration: 0.1),
-//            SKAction.moveBy(x: -bounceX, y: -bounceY, duration: 0.1)
-//        ])
-//        character.run(bounceAction)
+    private func handleDoorCollision(door: Door) {
+        guard let currentRoomNumber = getCurrentRoomNumber() else {
+            print("Failed to get current room number")
+            return
+        }
         
-        print("Enri hit a wall and stopped. Direction: \(character.currentDirection)")
+        // Определяем целевую комнату на основе ID двери
+        let targetRoomNumber = getTargetRoomNumber(for: door.id, currentRoom: currentRoomNumber)
+        let targetRoomID = "room\(targetRoomNumber)"
+        
+        print("Door \(door.id) activated. Moving from room\(currentRoomNumber) to \(targetRoomID)")
+        
+        // Загружаем новую комнату и перезапускаем игру
+        roomManager.loadRoom(withID: targetRoomID)
+        loadGame()
+    }
+    
+    private func getCurrentRoomNumber() -> Int? {
+        let roomID = roomManager.currentID
+        let numberString = roomID.replacingOccurrences(of: "room", with: "")
+        return Int(numberString)
+    }
+    
+    private func getTargetRoomNumber(for doorID: String, currentRoom: Int) -> Int {
+        let doorConfig: [String: (Int, String)] = [
+            "door_1": (currentRoom > 1 ? currentRoom - 1 : currentRoom + 1, "Main door - goes back if not first room, otherwise forward"),
+            "door_2": (currentRoom + 1, "Forward door - always goes to next room"),
+            "door_3": (currentRoom - 1, "Backward door - always goes to previous room")
+        ]
+        
+        if let (targetRoom, description) = doorConfig[doorID] {
+            print("Door \(doorID): \(description)")
+            return targetRoom
+        }
+        
+        print("Door \(doorID): Default behavior - going forward")
+        return currentRoom + 1
     }
 
-    
-//    func didEnd(_ contact: SKPhysicsContact) {
-////        handleContact(contact, began: false)
-//    }
-//    
-//    private func handleContact(_ contact: SKPhysicsContact, began: Bool) {
-//        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
-//        
-//        if collision == (PhysicsCategory.character | PhysicsCategory.firstDialogTrigger) {
-//            handleTriggerContact(contact, began: began, triggerType: .firstDialog)
-//        }
-//        else if collision == (PhysicsCategory.character | PhysicsCategory.dialogTrigger) {
-//            handleTriggerContact(contact, began: began, triggerType: .regular)
-//        }
-//    }
-//
-//    private func handleTriggerContact(_ contact: SKPhysicsContact, began: Bool, triggerType: TriggerType) {
-//        let characterNode = contact.bodyA.categoryBitMask == PhysicsCategory.character ?
-//            contact.bodyA.node : contact.bodyB.node
-//        let node = contact.bodyA.categoryBitMask == PhysicsCategory.dialogTrigger ?
-//            contact.bodyA.node : contact.bodyB.node
-//
-//        
-//        if let character = characterNode as? Character, let bloodWriting = node as? BloodWallWriting {
-//            if began {
-//                switch triggerType {
-//                case .firstDialog:
-//                    startFirstDialog(with: character)
-//                case .regular:
-////                    startDialog(with: character)
-//                    bloodWriting.secondDialog()
-//                }
-//            } else {
-//                characters.removeAll()
-//            }
-//        }
-//    }
-//
-//    enum TriggerType {
-//        case firstDialog
-//        case regular
-//    }
-//    
-//    private func startDialog(with character: Character) {
-//        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEmma))
-//    }
-//    
-//    private func startFirstDialog(with character: Character) {
-//        dilogManager.present(text: "Hello there!", texture: SKTexture(image: .defaultEnri))
-//    }
     
     private func setupControlButtons() {
         let buttonSize = CGSize(width: 80, height: 80)
@@ -266,7 +209,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             dilogManager.handleTap()
             return
         }
-//        dilogManager.present(text: "The first version of this screen, something myght not work properly", texture: SKTexture(image: .defaultEnri))
+
         for touch in touches {
             let location = touch.location(in: self)
             let nodes = self.nodes(at: location)
@@ -313,7 +256,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
 }
 
-// Helper extension for vector normalization
 extension CGVector {
     func normalized() -> CGVector {
         let length = sqrt(dx*dx + dy*dy)

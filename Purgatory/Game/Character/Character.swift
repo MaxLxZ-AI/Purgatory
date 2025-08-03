@@ -62,37 +62,29 @@ class GameCharacter: SKSpriteNode {
     
     func updateDirection() {
     }
-    
 
-    
-
-    
     private func updateVelocity() {
         if currentDirection == .none && isWalking {
             stopMoving()
             return
         }
         
-        // Проверяем, не выходит ли персонаж за границы сцены
         let newPosition = CGPoint(
-            x: position.x + currentDirection.vector.dx * moveSpeed * 0.016, // 60 FPS
+            x: position.x + currentDirection.vector.dx * moveSpeed * 0.016,
             y: position.y + currentDirection.vector.dy * moveSpeed * 0.016
         )
         
-        // Получаем размеры сцены
         guard let scene = scene else { return }
         let sceneSize = scene.size
         let halfWidth = size.width / 2
         let halfHeight = size.height / 2
         
-        // Проверяем границы
         let minX = halfWidth
         let maxX = sceneSize.width - halfWidth
         let minY = halfHeight
         let maxY = sceneSize.height - halfHeight
         
-        // Если персонаж выходит за границы, останавливаем движение
-        if newPosition.x < minX || newPosition.x > maxX || 
+        if newPosition.x < minX || newPosition.x > maxX ||
            newPosition.y < minY || newPosition.y > maxY {
             stopMoving()
             return
@@ -112,9 +104,8 @@ class GameCharacter: SKSpriteNode {
     }
     
     func startMoving(in direction: Direction) {
-        // Проверяем, нет ли препятствий в направлении движения
         if !canMoveInDirection(direction) {
-            print("Cannot move in direction: \(direction) - obstacle detected")
+//            print("Cannot move in direction: \(direction) - obstacle detected")
             return
         }
         
@@ -125,17 +116,14 @@ class GameCharacter: SKSpriteNode {
     private func canMoveInDirection(_ direction: Direction) -> Bool {
         guard let scene = scene else { return false }
         
-        // Проверяем позицию в направлении движения
-        let checkDistance: CGFloat = size.width / 2 + 5 // Немного больше половины размера
+        let checkDistance: CGFloat = size.width / 2 + 5
         let checkPosition = CGPoint(
             x: position.x + direction.vector.dx * checkDistance,
             y: position.y + direction.vector.dy * checkDistance
         )
         
-        // Проверяем, есть ли физическое тело в этой позиции
         let bodies = scene.physicsWorld.body(at: checkPosition)
         if let body = bodies {
-            // Если есть тело и это стена, возвращаем false
             if body.categoryBitMask == PhysicsCategory.wall {
                 return false
             }
@@ -152,7 +140,6 @@ class GameCharacter: SKSpriteNode {
     }
     
     func moveToPosition(_ position: CGPoint, duration: TimeInterval, completion: (() -> Void)? = nil) {
-        // Определяем направление для анимации
         let dx = position.x - self.position.x
         let dy = position.y - self.position.y
         if abs(dx) > abs(dy) {
@@ -193,11 +180,11 @@ final class Enri: GameCharacter {
 
 final class Emma: GameCharacter {
     
-    weak var leader: GameCharacter?  // The character to follow (Enri)
-    var followDistance: CGFloat = 100.0  // Distance to maintain from leader
-    var followDelay: TimeInterval = 0.3  // Delay before starting to follow
+    weak var leader: GameCharacter?
+    var followDistance: CGFloat = 100.0
+    var followDelay: TimeInterval = 0.3
     private var lastLeaderPosition: CGPoint?
-    private var leaderPositions: [CGPoint] = []  // Trail of leader positions
+    private var leaderPositions: [CGPoint] = []
     private let maxTrailLength = 10
     
     override func updateDirection() {
@@ -217,6 +204,10 @@ final class Emma: GameCharacter {
     func setupFollowing(leader: GameCharacter) {
         self.leader = leader
         self.lastLeaderPosition = leader.position
+    }
+    
+    func removeLeader() {
+        self.leader = nil
     }
     
     func updateFollowing() {
