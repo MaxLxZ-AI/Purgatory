@@ -139,6 +139,7 @@ class RoomManager {
     }
 
     func loadRoom(withID id: String) {
+        
         print("Attempting to load room with ID: \(id)")
         print("Available rooms: \(getRoomIDs())")
         
@@ -156,7 +157,7 @@ class RoomManager {
         scene.removeAllChildren()
         currentID = id
         doorCounter = 0
-
+        scene.backgroundColor = .black
         let numRows = room.layout.count
         for (rowIndex, row) in room.layout.enumerated() {
             for (colIndex, char) in row.enumerated() {

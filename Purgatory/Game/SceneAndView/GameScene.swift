@@ -39,6 +39,12 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         startIntroCutscene()
     }
     
+    
+    private func loadSecondRoom() {
+        setupControlButtons()
+        startSecondRoomCutscene()
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         enri.updateMovement()
         
@@ -48,10 +54,18 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     func startIntroCutscene() {
         emma.removeLeader()
-        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, onEndOfCutscene: { [self] in
+        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .introduction, onEndOfCutscene: { [self] in
             emma.setupFollowing(leader: enri)
         })
         dilogManager.playCutscene(introCutscene)
+    }
+    
+    func startSecondRoomCutscene() {
+        emma.removeLeader()
+        let secondRoomCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
+            emma.setupFollowing(leader: enri)
+        })
+        dilogManager.playCutscene(secondRoomCutscene)
     }
     
     private func setUpTrigger() {
@@ -133,6 +147,22 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    private func animatedTransitionAmongRooms() {
+        let coverNode = SKSpriteNode(color: .black, size: self.size)
+        
+        coverNode.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
+        coverNode.zPosition = 9999
+        coverNode.color = .black
+        coverNode.alpha = 0 // Начинаем с прозрачного
+        addChild(coverNode)
+        
+        coverNode.run(.sequence([
+            .fadeIn(withDuration: 2),
+            .fadeOut(withDuration: 2),
+            .removeFromParent()
+        ]))
+    }
+    
     private func handleDoorCollision(door: Door) {
         guard let currentRoomNumber = getCurrentRoomNumber() else {
             print("Failed to get current room number")
@@ -147,7 +177,16 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         
         // Загружаем новую комнату и перезапускаем игру
         roomManager.loadRoom(withID: targetRoomID)
-        loadGame()
+        switch targetRoomID {
+        case "room1":
+            break
+        case "room2":
+            animatedTransitionAmongRooms()
+            loadSecondRoom()
+        default:
+            break
+        }
+        
     }
     
     private func getCurrentRoomNumber() -> Int? {

@@ -14,6 +14,13 @@ struct CutsceneAction {
     let delay: TimeInterval
 }
 
+enum CutsceneType {
+    case introduction
+    case secondRoom
+}
+    
+
+
 class CutsceneManager {
     private var actions: [CutsceneAction] = []
     private var currentIndex = 0
@@ -176,22 +183,29 @@ final class DialogManager {
         return currentDialog != nil || !dialogQueue.isEmpty
     }
     
-    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter, onEndOfCutscene: @escaping () -> Void) -> [CutsceneAction] {
-//        print("Creating intro cutscene with onEndOfCutscene callback")
-        let actions = [
-            CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 0),
-            CutsceneAction(type: .moveCharacter(emma, to: CGPoint(x: emma.position.x - 100, y: emma.position.y), duration: 2.0), delay: 0),
-            CutsceneAction(type: .showDialog("Let's explore together!", texture: SKTexture(image: .defaultEmma)), delay: 2),
-            CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x + 100, y: enri.position.y), duration: 2), delay: 0),
-            CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 2) // Assuming this is the end
-        ]
+    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter, cutsceneType: CutsceneType, onEndOfCutscene: @escaping () -> Void) -> [CutsceneAction] {
+        var actions: [CutsceneAction] = []
+        switch cutsceneType {
+        case .introduction:
+            actions = [
+                CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 0),
+                CutsceneAction(type: .moveCharacter(emma, to: CGPoint(x: emma.position.x - 100, y: emma.position.y), duration: 2.0), delay: 0),
+                CutsceneAction(type: .showDialog("Let's explore together!", texture: SKTexture(image: .defaultEmma)), delay: 2),
+                CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x + 100, y: enri.position.y), duration: 2), delay: 0),
+                CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 2)
+            ]
+        case .secondRoom:
+            actions = [
+                CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 0)
+            ]
+        }
+
         
 //        print("Created cutscene with \(actions.count) actions")
         return actions
     }
     
     func playCutscene(_ actions: [CutsceneAction]) {
-//        print("Playing cutscene with \(actions.count) actions")
         cutsceneManager?.playCutscene(actions)
     }
     
