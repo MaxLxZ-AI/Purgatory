@@ -13,6 +13,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var moveButtons: [Direction: MovementButton] = [:]
     
     var dilogManager: DialogManager!
+    var selectionManager: SelectionManager!
     
     private var characters: [GameCharacter] = []
     private var dialogTriggers: [DialogTriggerNode] = []
@@ -20,10 +21,11 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         dilogManager = DialogManager(scene: self)
+        selectionManager = SelectionManager(scene: self)
         loadCharacters()
         roomManager = RoomManager(scene: self, dialogManager: dilogManager, characters: characters)
         roomManager.loadRoom(withID: "room1")
-//        setUpBackground()
+        setUpBackground()
         loadGame()
 
         
@@ -36,7 +38,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func loadGame() {
         setupControlButtons()
-        startIntroCutscene()
+//        startIntroCutscene()
     }
     
     
@@ -77,7 +79,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     private func setUpBackground() {
         let background = SKSpriteNode(texture: SKTexture(image: .firstRoom),
                                       size: CGSize(width: frame.width, height: frame.height))
-        background.zPosition = 0
+        background.zPosition = -1
         background.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(background)
     }
@@ -117,7 +119,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         guard characterBody.categoryBitMask == PhysicsCategory.character,
               let character = characterBody.node as? GameCharacter else { return }
 
-        // First dialog trigger with radius
         if otherBody.categoryBitMask == PhysicsCategory.firstDialogTrigger,
            let radiusNode = otherBody.node as? TriggerRadius,
            let trigger = radiusNode.parentTrigger ?? otherBody.node?.parent as? DialogTriggering {
@@ -137,14 +138,63 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
            let trigger = otherBody.node as? DialogTriggering {
             enri.stopMoving()
             trigger.characterDidEnter(character)
+            
             trigger.secondDialog(onDialogEnd: { [self] in
-                enri.moveToPosition(CGPoint(x: enri.position.x - 300, y: enri.position.y), duration: 5)
+                if trigger.wasDialogTriggered { return }
+                trigger.wasDialogTriggered = true
+                
+                actionAfterDialog(identity: trigger.identity, trigger: trigger)
             })
             
         }
         if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
             handleDoorCollision(door: door)
         }
+    }
+    
+    private func actionAfterDialog(identity: TriggerIdentity, trigger: DialogTriggering) {
+        switch identity {
+        case .bloodWriting:
+            selectionManager.showCharacterSelectionButtons(for: characters) {
+                self.dilogManager.presentSequence([
+                    ("", SKTexture(image: .defaultEnri))
+                ])
+                self.dilogManager.onDialogEnd = {
+                    let words = Constants.WordsToguess.echo.shuffled()
+                    
+                    self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+                        print("Right word")
+                    } wrongWord: {
+                        print("Wrong word")
+                        trigger.wasDialogTriggered = false
+                    }
+
+                }
+            } emmaSelected: {
+                self.dilogManager.presentSequence([
+                    ("I will try", SKTexture(image: .defaultEmma))
+                ])
+                self.dilogManager.onDialogEnd = {
+                    let words = Constants.WordsToguess.echo.shuffled()
+                    
+                    self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+                        print("Right word")
+                    } wrongWord: {
+                        print("Wrong word")
+                        trigger.wasDialogTriggered = false
+                    }
+
+                }
+            }
+        case .magicRune:
+            break
+        case .cursedMirror:
+            break
+        }
+    }
+    
+    private func guessAword() {
+        
     }
     
     private func animatedTransitionAmongRooms() {

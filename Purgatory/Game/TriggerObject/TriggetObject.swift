@@ -1,6 +1,14 @@
 import SpriteKit
 
-protocol DialogTriggering {
+enum TriggerIdentity {
+    case bloodWriting
+    case magicRune
+    case cursedMirror
+}
+
+protocol DialogTriggering: AnyObject {
+    var identity: TriggerIdentity { get }
+    var wasDialogTriggered: Bool { get set }
     func characterDidEnter(_ character: GameCharacter)
     func firstDialog(onDialogEnd: (() -> Void)?)
     func secondDialog(onDialogEnd: (() -> Void)?)
@@ -10,12 +18,15 @@ class DialogTriggerNode: SKSpriteNode, DialogTriggering {
     var charactersInRange: [GameCharacter] = []
     var dialogManager: DialogManager
     private var triggerRadius: TriggerRadius
+    let identity: TriggerIdentity
     private var isDialogActive = false
+    var wasDialogTriggered = false
     private var activeCharacters: Set<GameCharacter> = []
     
-    init(texture: SKTexture, size: CGSize, dialogManager: DialogManager, triggerRadius: TriggerRadius) {
+    init(texture: SKTexture, size: CGSize, dialogManager: DialogManager, triggerRadius: TriggerRadius, identity: TriggerIdentity) {
         self.dialogManager = dialogManager
         self.triggerRadius = triggerRadius
+        self.identity = identity
         super.init(texture: texture, color: .clear, size: size)
         setupPhysics()
 //        setUpRadius()
@@ -65,7 +76,7 @@ class DialogTriggerNode: SKSpriteNode, DialogTriggering {
     }
     
     private func checkForDialog() {
-        guard activeCharacters.count >= 0, !isDialogActive else { return }
+        guard activeCharacters.count > 0, !isDialogActive else { return }
         startDialogBetween(characters: Array(activeCharacters.prefix(2)))
     }
     
@@ -92,7 +103,8 @@ final class BloodWallWriting: DialogTriggerNode {
     
     override func secondDialog(onDialogEnd: (() -> Void)?) {
         dialogManager.presentSequence([
-            ("", SKTexture(image: .defaultEnri))
+            ("I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", SKTexture(image: .defaultEmma)),
+            ("I suppose we should choose someone who can guess the word, who will it be?", SKTexture(image: .defaultEmma))
         ])
         
         dialogManager.onDialogEnd = {

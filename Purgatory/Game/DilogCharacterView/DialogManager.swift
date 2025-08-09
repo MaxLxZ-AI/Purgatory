@@ -146,7 +146,7 @@ final class DialogManager {
 
         let dialog = DilogCharacterView(
             text: text,
-            charcterTexture: texture ?? SKTexture(image: .calmEnri),
+            charcterTexture: texture,
             size: CGSize(width: 400, height: 100)
         )
 

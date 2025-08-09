@@ -20,6 +20,10 @@ enum Constants {
         
     }
     
+    enum WordsToguess {
+        static let echo: [String] = ["Echo", "Air", "breeze", "Gust", "Blow"]
+    }
+    
     enum CharactersTextures {
         enum Enri {
             enum Walk {

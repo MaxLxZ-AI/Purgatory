@@ -6,9 +6,9 @@ final class DilogCharacterView: SKSpriteNode {
     private let character = SKSpriteNode()
     
     let text: String
-    let characterTexture: SKTexture
+    let characterTexture: SKTexture?
     
-    init(text: String, charcterTexture: SKTexture, size: CGSize) {
+    init(text: String, charcterTexture: SKTexture?, size: CGSize) {
         self.text = text
         self.characterTexture = charcterTexture
         super.init(texture: SKTexture(image: .dilogWindow), color: .clear, size: size)
@@ -20,8 +20,9 @@ final class DilogCharacterView: SKSpriteNode {
     }
     
     private func setUpCharacter() {
-        character.texture = characterTexture
-        character.size = characterTexture.size()
+        guard let texture = characterTexture else { return }
+        character.texture = texture
+        character.size = texture.size()
         character.position = CGPoint(x: size.width / 2 + 25, y: frame.maxY)
         addChild(character)
     }

@@ -179,7 +179,7 @@ class RoomManager {
     private func createNode(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
         switch char {
         case "#":
-            let wall = SKSpriteNode(color: .brown, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
+            let wall = SKSpriteNode(color: .clear, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
             wall.physicsBody = SKPhysicsBody(rectangleOf: wall.size)
             wall.physicsBody?.isDynamic = false
             wall.physicsBody?.affectedByGravity = false
@@ -220,7 +220,7 @@ class RoomManager {
             }
             let trigger = BloodWallWriting(texture: SKTexture(image: .wft),
                                            size: CGSize(width: 100, height: 100),
-                                            dialogManager: dialogManager, triggerRadius: TriggerRadius(radius: 100))
+                                           dialogManager: dialogManager, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
             
             
             return trigger
@@ -232,7 +232,7 @@ class RoomManager {
     private func createNodeWithCornerAnchor(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
         switch char {
         case "#":
-            let wall = SKSpriteNode(color: .brown, size: CGSize(width: tileSize, height: tileSize))
+            let wall = SKSpriteNode(color: .clear, size: CGSize(width: tileSize, height: tileSize))
             wall.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
             return wall
         case ".":
