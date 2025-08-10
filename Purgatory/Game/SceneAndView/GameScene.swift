@@ -9,6 +9,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var moveLeftButton: SKSpriteNode!
     var moveRightButton: SKSpriteNode!
     var roomManager: RoomManager!
+    var wrongAnswersCounter = 0
     
     var moveButtons: [Direction: MovementButton] = [:]
     
@@ -38,7 +39,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func loadGame() {
         setupControlButtons()
-//        startIntroCutscene()
+        startIntroCutscene()
     }
     
     
@@ -182,6 +183,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                     } wrongWord: {
                         print("Wrong word")
                         trigger.wasDialogTriggered = false
+                        self.wrongAnswersCounter += 1
+                        if self.wrongAnswersCounter == 3 {
+                            
+                        }
                     }
 
                 }
@@ -203,7 +208,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         coverNode.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
         coverNode.zPosition = 9999
         coverNode.color = .black
-        coverNode.alpha = 0 // Начинаем с прозрачного
+        coverNode.alpha = 0 
         addChild(coverNode)
         
         coverNode.run(.sequence([
@@ -215,24 +220,22 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func handleDoorCollision(door: Door) {
         guard let currentRoomNumber = getCurrentRoomNumber() else {
-            print("Failed to get current room number")
             return
         }
         
-        // Определяем целевую комнату на основе ID двери
         let targetRoomNumber = getTargetRoomNumber(for: door.id, currentRoom: currentRoomNumber)
         let targetRoomID = "room\(targetRoomNumber)"
         
         print("Door \(door.id) activated. Moving from room\(currentRoomNumber) to \(targetRoomID)")
         
-        // Загружаем новую комнату и перезапускаем игру
         roomManager.loadRoom(withID: targetRoomID)
         switch targetRoomID {
         case "room1":
             break
         case "room2":
-            animatedTransitionAmongRooms()
+//            animatedTransitionAmongRooms()
             loadSecondRoom()
+            break
         default:
             break
         }
