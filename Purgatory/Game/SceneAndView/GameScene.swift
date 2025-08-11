@@ -8,9 +8,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var emma: Emma!
     var moveLeftButton: SKSpriteNode!
     var moveRightButton: SKSpriteNode!
-    var roomManager: RoomManager!
     var wrongAnswersCounter = 0
-    
+    var roomManager: RoomManager!
     var moveButtons: [Direction: MovementButton] = [:]
     
     var dilogManager: DialogManager!
@@ -24,17 +23,29 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         dilogManager = DialogManager(scene: self)
         selectionManager = SelectionManager(scene: self)
         loadCharacters()
-        roomManager = RoomManager(scene: self, dialogManager: dilogManager, characters: characters)
-        roomManager.loadRoom(withID: "room1")
+        roomManager = RoomManager(scene: self, dialogManager: dilogManager)
         setUpBackground()
-        loadGame()
-
         
+        roomManager.setupFieldAndObjects()
+        loadGame()
+    }
+    
+    private func initializeRoom() {
+        guard size.width > 0 && size.height > 0 else {
+            // Если размер еще не установлен, повторим попытку через короткое время
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.initializeRoom()
+            }
+            return
+        }
+        
+
     }
     
     private func loadCharacters() {
         setUpEnri()
         setUpEmma()
+
     }
     
     private func loadGame() {
@@ -92,9 +103,11 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             character: .Enri, calmState: calmTexture,
             size: CGSize(width: 64, height: 64)
         )
+        enri.position = CGPoint(x: frame.midX, y: frame.midY)
         characters.append(enri)
-
+        addChild(enri)
     }
+    
     
     private func setUpEmma() {
         let calmTexture = SKTexture(image: .downCalmEmma)
@@ -104,8 +117,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             size: CGSize(width: 64, height: 64)
         )
         emma.setupFollowing(leader: enri)
-
+        emma.position = CGPoint(x: frame.midX - 100, y: frame.midY)
+        addChild(emma)
         characters.append(emma)
+
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -148,8 +163,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             })
             
         }
-        if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
-            handleDoorCollision(door: door)
+        if otherBody.categoryBitMask == PhysicsCategory.door, let _ = otherBody.node as? Door {
         }
     }
     
@@ -218,51 +232,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         ]))
     }
     
-    private func handleDoorCollision(door: Door) {
-        guard let currentRoomNumber = getCurrentRoomNumber() else {
-            return
-        }
-        
-        let targetRoomNumber = getTargetRoomNumber(for: door.id, currentRoom: currentRoomNumber)
-        let targetRoomID = "room\(targetRoomNumber)"
-        
-        print("Door \(door.id) activated. Moving from room\(currentRoomNumber) to \(targetRoomID)")
-        
-        roomManager.loadRoom(withID: targetRoomID)
-        switch targetRoomID {
-        case "room1":
-            break
-        case "room2":
-//            animatedTransitionAmongRooms()
-            loadSecondRoom()
-            break
-        default:
-            break
-        }
-        
-    }
-    
-    private func getCurrentRoomNumber() -> Int? {
-        let roomID = roomManager.currentID
-        let numberString = roomID.replacingOccurrences(of: "room", with: "")
-        return Int(numberString)
-    }
-    
-    private func getTargetRoomNumber(for doorID: String, currentRoom: Int) -> Int {
-        let doorConfig: [String: (Int, String)] = [
-            "door_1": (currentRoom > 1 ? currentRoom - 1 : currentRoom + 1, "Main door - goes back if not first room, otherwise forward"),
-            "door_2": (currentRoom + 1, "Forward door - always goes to next room"),
-            "door_3": (currentRoom - 1, "Backward door - always goes to previous room")
-        ]
-        
-        if let (targetRoom, description) = doorConfig[doorID] {
-            print("Door \(doorID): \(description)")
-            return targetRoom
-        }
-        
-        print("Door \(doorID): Default behavior - going forward")
-        return currentRoom + 1
-    }
 
     
     private func setupControlButtons() {

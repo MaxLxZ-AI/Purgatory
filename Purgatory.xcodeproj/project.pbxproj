@@ -10,33 +10,9 @@
 		0EA37CE52E15578F00B1E19F /* Purgatory.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Purgatory.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0ED94A842E3C1B7700F6A329 /* Exceptions for "Purgatory" folder in "Purgatory" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Game/RoomManager/JSON/rooms_ascii.json,
-			);
-			target = 0EA37CE42E15578F00B1E19F /* Purgatory */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		0ED94A852E3C1B7700F6A329 /* Exceptions for "Purgatory" folder in "Compile Sources" phase from "Purgatory" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 0EA37CE12E15578F00B1E19F /* Sources */;
-			membershipExceptions = (
-				Game/RoomManager/JSON/rooms_ascii.json,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0EA37CE72E15578F00B1E19F /* Purgatory */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				0ED94A842E3C1B7700F6A329 /* Exceptions for "Purgatory" folder in "Purgatory" target */,
-				0ED94A852E3C1B7700F6A329 /* Exceptions for "Purgatory" folder in "Compile Sources" phase from "Purgatory" target */,
-			);
 			path = Purgatory;
 			sourceTree = "<group>";
 		};

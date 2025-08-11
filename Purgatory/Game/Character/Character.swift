@@ -75,6 +75,9 @@ class GameCharacter: SKSpriteNode {
         )
         
         guard let scene = scene else { return }
+        
+        guard scene.size.width > 0 && scene.size.height > 0 else { return }
+        
         let sceneSize = scene.size
         let halfWidth = size.width / 2
         let halfHeight = size.height / 2
@@ -115,6 +118,9 @@ class GameCharacter: SKSpriteNode {
     
     private func canMoveInDirection(_ direction: Direction) -> Bool {
         guard let scene = scene else { return false }
+        
+        // Дополнительная проверка на валидность scene
+        guard scene.size.width > 0 && scene.size.height > 0 else { return false }
         
         let checkDistance: CGFloat = size.width / 2 + 5
         let checkPosition = CGPoint(

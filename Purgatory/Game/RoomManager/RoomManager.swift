@@ -1,237 +1,88 @@
 import SpriteKit
 
-struct ASCIIRoomFile: Codable {
-    let rooms: [ASCIIRoom]
-}
-
-struct ASCIIRoom: Codable {
-    let id: String
-    let layout: [String]
-}
-
-
-class RoomManager {
-    private(set) var rooms: [String: ASCIIRoom] = [:]
-    private weak var scene: SKScene?
+final class RoomManager {
+    weak var scene: SKScene?
+    private var gridOrigin: CGPoint = .zero
+    private var gridCellSize: CGFloat = 0
+    private var counter = 0
+    private var rockSide: CGFloat = 0
     private weak var dialogManager: DialogManager?
-    private var characters: [GameCharacter]?
-    var doorCounter: Int = 0
-    var currentID: String = ""
-
-    let tileSize: CGFloat = 32
-    private let halfTileSize: CGFloat = 16 // tileSize / 2
-    
-    init(scene: SKScene, dialogManager: DialogManager? = nil, characters: [GameCharacter]? = nil) {
-        self.characters = characters
-        self.scene = scene
+    init(scene: SKScene? = nil, dialogManager: DialogManager? = nil) {
         self.dialogManager = dialogManager
-        loadRooms()
+        self.scene = scene
     }
     
-    func scaledSize(baseSize: CGFloat) -> CGFloat {
-        return (scene?.size.width)! / 375.0 * baseSize
-    }
-
-    func loadRooms() {
-        if loadRoomsFromJSON() {
-            return
-        }
-        createDefaultRoom()
-    }
-    
-    private func loadRoomsFromJSON() -> Bool {
-        // Выведем все доступные ресурсы в bundle для диагностики
-        if let resourcePath = Bundle.main.resourcePath {
-            do {
-                let contents = try FileManager.default.contentsOfDirectory(atPath: resourcePath)
-            } catch {
-            }
-        }
-        
-        // Сначала попробуем найти файл в корне (новое расположение)
-        if let url = Bundle.main.url(forResource: "rooms_ascii", withExtension: "json") {
-            if let data = try? Data(contentsOf: url) {
-                if let parsed = try? JSONDecoder().decode(ASCIIRoomFile.self, from: data) {
-                    for room in parsed.rooms {
-                        rooms[room.id] = room
-                    }
-                    return true
-                } else {
-                }
-            } else {
-            }
-        } else {
-        }
-        
-        // Попробуем найти файл с подпапкой (старое расположение)
-        if let url = Bundle.main.url(forResource: "rooms_ascii", withExtension: "json", subdirectory: "Game/RoomManager/JSON") {
-            if let data = try? Data(contentsOf: url) {
-                if let parsed = try? JSONDecoder().decode(ASCIIRoomFile.self, from: data) {
-                    for room in parsed.rooms {
-                        rooms[room.id] = room
-                    }
-                    return true
-                } else {
-                }
-            } else {
-            }
-        } else {
-        }
-        
-        return false
-    }
-    
-    private func createDefaultRoom() {
-        let defaultRoom = ASCIIRoom(
-            id: "room1",
-            layout: [
-                "##########",
-                "#..C.T..D#",
-                "#........#",
-                "#..P.....#",
-                "##########"
-            ]
-        )
-        rooms[defaultRoom.id] = defaultRoom
-        print("Created default room with ID: \(defaultRoom.id)")
-    }
-    
-    func hasRooms() -> Bool {
-        return !rooms.isEmpty
-    }
-    
-    func getRoomIDs() -> [String] {
-        return Array(rooms.keys)
-    }
-    
-    func setCharacters(_ characters: [GameCharacter]) {
-        self.characters = characters
-    }
-    
-    private func positionForCornerAlignment(colIndex: Int, rowIndex: Int, numRows: Int) -> CGPoint {
-        return CGPoint(
-            x: CGFloat(colIndex) * tileSize,
-            y: CGFloat(numRows - rowIndex - 1) * tileSize
-        )
-    }
-
-    func loadRoom(withID id: String) {
+    func setupFieldAndObjects() {
+        guard let scene = scene, let manager = dialogManager else { return }
+        guard scene.size.width > 0 && scene.size.height > 0 else { return }
+        let size = scene.size
+        let margin: CGFloat = 1
+        let columnsInside = 19
+        let rowsInside = 8
+        let totalColumns = columnsInside + 2
+        let totalRows = rowsInside + 2
+        rockSide = min((size.width - 2 * margin) / CGFloat(totalColumns), (size.height - 2 * margin) / CGFloat(totalRows))
+        let totalWidth = rockSide * CGFloat(totalColumns)
+        let totalHeight = rockSide * CGFloat(totalRows)
+        let offsetX = (size.width - totalWidth) / 2
+        let offsetY = (size.height - totalHeight) / 2
+        self.gridOrigin = CGPoint(x: offsetX + rockSide * 1.5, y: offsetY + rockSide * 1.5)
+        self.gridCellSize = rockSide
         
 
-        
-        guard let room = rooms[id] else {
-            return
-        }
-        
-        guard let scene = scene else {
-            return
-        }
-        scene.removeAllChildren()
 
-        
-        print("Loading room: \(id)")
-        currentID = id
-        doorCounter = 0
-        scene.backgroundColor = .black
-        let numRows = room.layout.count
-        for (rowIndex, row) in room.layout.enumerated() {
-            for (colIndex, char) in row.enumerated() {
-                let position = CGPoint(
-                    x: CGFloat(colIndex) * tileSize + halfTileSize,
-                    y: CGFloat(numRows - rowIndex - 1) * tileSize + halfTileSize
-                )
-                if let node = createNode(for: char, rowIndex: rowIndex, colIndex: colIndex) {
-                    node.position = position
-                    scene.addChild(node)
-                }
-            }
+        let _ = SKTexture(imageNamed: "CluckRockImage")
+        for col in 0..<totalColumns {
+            let x = offsetX + CGFloat(col) * rockSide + rockSide/2
+            let topRock = Wall(wallTexture: nil, size: CGSize(width: rockSide, height: rockSide))
+            topRock.position = CGPoint(x: x, y: offsetY + totalHeight - rockSide/2)
+
+            scene.addChild(topRock)
+            let bottomRock = Wall(wallTexture: nil, size: CGSize(width: rockSide, height: rockSide))
+            bottomRock.position = CGPoint(x: x, y: offsetY + rockSide/2)
+   
+            scene.addChild(bottomRock)
         }
-//        coverNode.run(.sequence([
-
-//        ]))
-    }
-
-    private func createNode(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
-        switch char {
-        case "#":
-            let wall = SKSpriteNode(color: .clear, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
-            wall.physicsBody = SKPhysicsBody(rectangleOf: wall.size)
-            wall.physicsBody?.isDynamic = false
-            wall.physicsBody?.affectedByGravity = false
-            wall.physicsBody?.categoryBitMask = PhysicsCategory.wall
-            wall.physicsBody?.collisionBitMask = PhysicsCategory.character
-            wall.physicsBody?.contactTestBitMask = PhysicsCategory.character
-            wall.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            return wall
-        case ".":
-            return nil
-        case "C":
-            let crate = SKSpriteNode(color: .orange, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
-            crate.name = "crate"
-            crate.anchorPoint = CGPoint(x: 0.5, y: 0.5) // Центр
-            return crate
-        case "D":
-            doorCounter += 1
-            let doorId = "door_\(doorCounter)"
-            let door = Door(id: doorId, wasEntered: false, size: CGSize(width: scaledSize(baseSize: tileSize), height: scaledSize(baseSize: tileSize)))
-            return door
-        case "E":
-            guard let enri = characters?[0], enri.character == .Enri else {
-                return nil
-            }
-            return enri
+        for row in 1..<(totalRows - 1) {
+            let y = offsetY + CGFloat(row) * rockSide + rockSide/2
+            let leftRock = Wall(wallTexture: nil, size: CGSize(width: rockSide, height: rockSide))
+            leftRock.position = CGPoint(x: offsetX + rockSide/2, y: y)
+            scene.addChild(leftRock)
             
-        case "M":
-            guard let emma = characters?[1], emma.character == .Emma else {
-                return nil
-            }
-            return emma
-            
-            
-        case "T":
-            guard let dialogManager = dialogManager else {
-                print("Warning: DialogManager not available for trigger creation")
-                return nil
-            }
-            let trigger = BloodWallWriting(texture: SKTexture(image: .wft),
-                                           size: CGSize(width: 100, height: 100),
-                                           dialogManager: dialogManager, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
-            
-            
-            return trigger
-        default:
-            return nil
+            let rightRock = Wall(wallTexture: nil, size: CGSize(width: rockSide, height: rockSide))
+            rightRock.position = CGPoint(x: offsetX + totalWidth - rockSide/2, y: y)
+
+            scene.addChild(rightRock)
         }
-    }
-    
-    private func createNodeWithCornerAnchor(for char: Character, rowIndex: Int, colIndex: Int) -> SKNode? {
-        switch char {
-        case "#":
-            let wall = SKSpriteNode(color: .clear, size: CGSize(width: tileSize, height: tileSize))
-            wall.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
-            return wall
-        case ".":
-            return nil
-        case "C":
-            let crate = SKSpriteNode(color: .orange, size: CGSize(width: tileSize, height: tileSize))
-            crate.name = "crate"
-            crate.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
-            return crate
-        case "D":
-            doorCounter += 1
-            let doorId = "door_\(doorCounter)"
-            let door = Door(id: doorId, wasEntered: false, size: CGSize(width: tileSize, height: tileSize))
-            return door
-        case "P":
-            let player = SKSpriteNode(color: .green, size: CGSize(width: tileSize, height: tileSize))
-            player.name = "player"
-            player.anchorPoint = CGPoint(x: 0, y: 0) // Левый нижний угол
-            player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
-            player.physicsBody?.categoryBitMask = 0x1 << 0
-            player.physicsBody?.contactTestBitMask = 0x1 << 1
-            return player
-        default:
-            return nil
+
+        let obstacles: [(Int, Int)] = [
+            (0,5), (9,5)
+        ]
+        for (col, row) in obstacles {
+            let rock = BloodWallWriting(texture: SKTexture(image: .wft),
+                                                size: CGSize(width: rockSide, height: rockSide),
+                      dialogManager: manager, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
+            rock.size = CGSize(width: rockSide, height: rockSide)
+            rock.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
+            scene.addChild(rock)
         }
+
+
+        let _ = SKTexture(imageNamed: "CluckFireImage")
+        let _: [(Int, Int)] = [
+            (2,0), (6,0), (8,0), (9,0), (11,0), (12,0), (14,0)
+        ]
+//        for (col, row) in spikes {
+//            let spike = SKSpriteNode(texture: spikeTexture)
+//            spike.size = CGSize(width: rockSide, height: rockSide)
+//            spike.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
+//            let spikeBodySize = CGSize(width: gridCellSize * 0.7, height: gridCellSize * 0.7)
+//            spike.physicsBody = SKPhysicsBody(rectangleOf: spikeBodySize)
+//            spike.physicsBody?.isDynamic = false
+//            spike.physicsBody?.categoryBitMask = PhysicsCategory.spike
+//            spike.physicsBody?.collisionBitMask = PhysicsCategory.chicken
+//            spike.name = "spike"
+//            addChild(spike)
+//        }
     }
 }
