@@ -12,6 +12,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var roomManager: RoomManager!
     var moveButtons: [Direction: MovementButton] = [:]
     
+    var roomNumber = 1
     var dilogManager: DialogManager!
     var selectionManager: SelectionManager!
     
@@ -22,11 +23,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.contactDelegate = self
         dilogManager = DialogManager(scene: self)
         selectionManager = SelectionManager(scene: self)
-        loadCharacters()
         roomManager = RoomManager(scene: self, dialogManager: dilogManager)
+        roomManager.loadRoom(room: "room\(roomNumber)")
         setUpBackground()
-        
-        roomManager.setupFieldAndObjects()
+        loadCharacters()
         loadGame()
     }
     
@@ -103,9 +103,29 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             character: .Enri, calmState: calmTexture,
             size: CGSize(width: 64, height: 64)
         )
-        enri.position = CGPoint(x: frame.midX, y: frame.midY)
+        enri.position = CGPoint(x: frame.midX, y: frame.midY - 100)
         characters.append(enri)
         addChild(enri)
+    }
+    
+    private func setCharactersPositions(roomNumber: Int) {
+        switch roomNumber {
+        case 1:
+            enri.position = CGPoint(x: frame.midX, y: frame.midY - 100)
+            addChild(enri)
+            
+            emma.position = CGPoint(x: frame.midX - 100, y: frame.midY - 100)
+            addChild(emma)
+            
+        case 2:
+            enri.position = CGPoint(x: frame.midX - 100, y: frame.midY)
+            addChild(enri)
+            
+            emma.position = CGPoint(x: frame.midX - 170, y: frame.midY)
+            addChild(emma)
+        default:
+            break
+        }
     }
     
     
@@ -117,7 +137,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             size: CGSize(width: 64, height: 64)
         )
         emma.setupFollowing(leader: enri)
-        emma.position = CGPoint(x: frame.midX - 100, y: frame.midY)
+        emma.position = CGPoint(x: frame.midX - 100, y: frame.midY - 100)
         addChild(emma)
         characters.append(emma)
 
@@ -163,7 +183,40 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             })
             
         }
-        if otherBody.categoryBitMask == PhysicsCategory.door, let _ = otherBody.node as? Door {
+        if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
+            if roomManager.doorArray.count >= 2 {
+                switch door.id {
+                case "Door1":
+                    roomNumber -= 1
+                    roomManager.loadRoom(room: "room\(roomNumber)")
+                    loadCharactersToACertainRoom(roomNumber: roomNumber)
+                    setupControlButtons()
+                    
+                case "Door2":
+                    roomNumber += 1
+                    roomManager.loadRoom(room: "room\(roomNumber)")
+                    loadCharactersToACertainRoom(roomNumber: roomNumber)
+                    setupControlButtons()
+                default:
+                    break
+                }
+            } else {
+                roomNumber += 1
+                roomManager.loadRoom(room: "room\(roomNumber)")
+                loadCharactersToACertainRoom(roomNumber: roomNumber)
+                setupControlButtons()
+            }
+        }
+    }
+    
+    private func loadCharactersToACertainRoom(roomNumber: Int) {
+        switch roomNumber {
+        case 1:
+            setCharactersPositions(roomNumber: roomNumber)
+        case 2:
+            setCharactersPositions(roomNumber: roomNumber)
+        default:
+            break
         }
     }
     
