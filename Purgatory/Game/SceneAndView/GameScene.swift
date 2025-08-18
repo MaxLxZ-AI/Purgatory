@@ -50,7 +50,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func loadGame() {
         setupControlButtons()
-        startIntroCutscene()
+//        startIntroCutscene()
     }
     
     
@@ -251,8 +251,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                         print("Wrong word")
                         trigger.wasDialogTriggered = false
                         self.wrongAnswersCounter += 1
-                        if self.wrongAnswersCounter == 3 {
-                            
+                        if self.wrongAnswersCounter >= 1 {
+                            self.roomManager.trapInsideIllusion()
                         }
                     }
 

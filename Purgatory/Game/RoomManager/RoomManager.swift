@@ -106,7 +106,6 @@ final class RoomManager {
         ]
         
         
-        
         for (col, row) in doors {
             let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * 2, height: rockSide * 2))
             door.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
@@ -134,8 +133,56 @@ final class RoomManager {
 //        }
     }
     
+    
+    func trapInsideIllusion() {
+        let initialCol = 1
+        offsetY = (sceneSize.height - totalHeight) / 2
+        
+        for col in initialCol..<rowsInside / 2 {
+            let y = offsetY + CGFloat(col) * rockSide + rockSide / 2
+            let inverseY = CGFloat(rowsInside + 2) * rockSide - y
+            
+            let isInverse = col % 2 == 0
+            
+            for row in 0..<columnsInside + 1 {
+                let delay = Double(col * rowsInside + row) * 0.2
+                
+                let waitAction = SKAction.wait(forDuration: delay)
+                let addRockAction = SKAction.run { [weak self] in
+                    guard let self = self else { return }
+                    
+                    let x = self.offsetX + CGFloat(row) * self.rockSide + self.rockSide / 2
+                    let inverseX = CGFloat(self.columnsInside + 2) * self.rockSide - x
+                    
+                    let rock = Wall(wallTexture: nil, size: CGSize(width: self.rockSide, height: self.rockSide))
+                    let inverseRock = Wall(wallTexture: nil, size: CGSize(width: self.rockSide, height: self.rockSide))
+                    
+                    rock.position = CGPoint(
+                        x: x,
+                        y: isInverse ? inverseY : y
+                    )
+                    
+                    inverseRock.position = CGPoint(
+                        x: inverseX,
+                        y: isInverse ? y : inverseY
+                    )
+                    
+                    self.scene?.addChild(rock)
+                    self.scene?.addChild(inverseRock)
+                    
+                    rock.alpha = 0
+                    rock.run(SKAction.fadeIn(withDuration: 0.3))
+                    inverseRock.alpha = 0
+                    inverseRock.run(SKAction.fadeIn(withDuration: 0.3))
+                }
+                
+                self.scene?.run(SKAction.sequence([waitAction, addRockAction]))
+            }
+        }
+    }
+    
     private func loadSecondRoom() {
-        guard let scene = scene, let manager = dialogManager else { return }
+        guard let scene = scene else { return }
         guard scene.size.width > 0 && scene.size.height > 0 else { return }
         scene.removeAllChildren()
         sceneSize = scene.size
