@@ -9,10 +9,10 @@ final class RoomManager {
     
     
     private var counter: Int = 0
-    private var columnsInside: Int = 0
-    private var rowsInside: Int = 0
-    private var totalColumns: Int = 0
-    private var totalRows: Int = 0
+    private var columnsInside: Int = Constants.GameConstants.columnsInside
+    private var rowsInside: Int = Constants.GameConstants.rowsInside
+    private var totalColumns: Int = Constants.GameConstants.columnsInside + 2
+    private var totalRows: Int = Constants.GameConstants.rowsInside + 2
     var doorCounter: Int = 0
     
     
@@ -20,9 +20,12 @@ final class RoomManager {
     private var totalHeight: CGFloat = 0
     private var offsetX: CGFloat = 0
     private var offsetY: CGFloat = 0
-    private var margin: CGFloat = 0
+    private var margin: CGFloat = Constants.GameConstants.margin
     private var gridCellSize: CGFloat = 0
     private var rockSide: CGFloat = 0
+    
+    private var trapWalls: [Wall] = []
+    private var wasWordGuessed = false
     
     var doorArray: [Door] = []
     
@@ -50,20 +53,14 @@ final class RoomManager {
         doorArray.removeAll()
         sceneSize = scene.size
         doorCounter = 0
-        margin = 0
-        columnsInside = 19
-        rowsInside = 8
-        totalColumns = columnsInside + 2
-        totalRows = rowsInside + 2
         rockSide = min((sceneSize.width - 2 * margin) / CGFloat(totalColumns), (sceneSize.height - 2 * margin) / CGFloat(totalRows))
         totalWidth = rockSide * CGFloat(totalColumns)
         totalHeight = rockSide * CGFloat(totalRows)
         offsetX = (sceneSize.width - totalWidth) / 2
         offsetY = (sceneSize.height - totalHeight) / 2
-        self.gridOrigin = CGPoint(x: offsetX + rockSide * 1.5, y: offsetY + rockSide * 1.5)
+        self.gridOrigin = CGPoint(x: offsetX + rockSide * Constants.GameConstants.gridOriginMultiplierX, y: offsetY + rockSide * Constants.GameConstants.gridOriginMultiplierY)
         self.gridCellSize = rockSide
         
-
 
         let _ = SKTexture(imageNamed: "CluckRockImage")
         for col in 0..<totalColumns {
@@ -96,7 +93,7 @@ final class RoomManager {
             let rock = BloodWallWriting(texture: SKTexture(image: .wft),
                                                 size: CGSize(width: rockSide, height: rockSide),
                       dialogManager: manager, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
-            rock.size = CGSize(width: rockSide * 2, height: rockSide * 2)
+            rock.size = CGSize(width: rockSide * Constants.GameConstants.obstacleSizeMultiplier, height: rockSide * Constants.GameConstants.obstacleSizeMultiplier)
             rock.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
             scene.addChild(rock)
         }
@@ -107,7 +104,7 @@ final class RoomManager {
         
         
         for (col, row) in doors {
-            let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * 2, height: rockSide * 2))
+            let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier))
             door.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
             doorArray.append(door)
             scene.addChild(door)
@@ -133,19 +130,39 @@ final class RoomManager {
 //        }
     }
     
+    func setCharactersPositions(enri: GameCharacter, emma: GameCharacter, enriPosition: (Int, Int), emmaPosition: (Int, Int)) {
+        
+        guard let scene = scene else { return }
+        guard scene.size.width > 0 && scene.size.height > 0 else { return }
+        sceneSize = scene.size
+        rockSide = min((sceneSize.width - 2 * margin) / CGFloat(totalColumns), (sceneSize.height - 2 * margin) / CGFloat(totalRows))
+        self.gridOrigin = CGPoint(x: offsetX + rockSide * Constants.GameConstants.gridOriginMultiplierX, y: offsetY + rockSide * Constants.GameConstants.gridOriginMultiplierY)
+
+        
+        enri.position = CGPoint(
+            x: gridOrigin.x + CGFloat(enriPosition.0) * rockSide,
+            y: gridOrigin.y + CGFloat(enriPosition.1) * rockSide
+        )
+        
+        emma.position = CGPoint(
+            x: gridOrigin.x + CGFloat(emmaPosition.0) * rockSide,
+            y: gridOrigin.y + CGFloat(emmaPosition.1) * rockSide
+        )
+    }
+    
     
     func trapInsideIllusion() {
         let initialCol = 1
         offsetY = (sceneSize.height - totalHeight) / 2
         
-        for col in initialCol..<rowsInside / 2 {
+        for col in initialCol..<rowsInside / 2 + 1 {
             let y = offsetY + CGFloat(col) * rockSide + rockSide / 2
             let inverseY = CGFloat(rowsInside + 2) * rockSide - y
             
             let isInverse = col % 2 == 0
             
             for row in 0..<columnsInside + 1 {
-                let delay = Double(col * rowsInside + row) * 0.2
+                let delay = Double(col * rowsInside + row + 1) * Constants.GameConstants.wallDelayMultiplier
                 
                 let waitAction = SKAction.wait(forDuration: delay)
                 let addRockAction = SKAction.run { [weak self] in
@@ -166,14 +183,17 @@ final class RoomManager {
                         x: inverseX,
                         y: isInverse ? y : inverseY
                     )
-                    
-                    self.scene?.addChild(rock)
-                    self.scene?.addChild(inverseRock)
-                    
+                    if !wasWordGuessed {
+                        self.scene?.addChild(rock)
+                        self.scene?.addChild(inverseRock)
+                        trapWalls.append(rock)
+                        trapWalls.append(inverseRock)
+                    }
+
                     rock.alpha = 0
-                    rock.run(SKAction.fadeIn(withDuration: 0.3))
+                    rock.run(SKAction.fadeIn(withDuration: Constants.GameConstants.wallFadeInDuration))
                     inverseRock.alpha = 0
-                    inverseRock.run(SKAction.fadeIn(withDuration: 0.3))
+                    inverseRock.run(SKAction.fadeIn(withDuration: Constants.GameConstants.wallFadeInDuration))
                 }
                 
                 self.scene?.run(SKAction.sequence([waitAction, addRockAction]))
@@ -181,23 +201,33 @@ final class RoomManager {
         }
     }
     
+    func releaseCharactersFromTrap() {
+        wasWordGuessed = true
+        for (index, wall) in trapWalls.enumerated() {
+            let delay = Double(index) * Constants.GameConstants.wallDelayMultiplier
+                
+                let waitAction = SKAction.wait(forDuration: delay)
+                let fadeOutAction = SKAction.fadeOut(withDuration: Constants.GameConstants.fadeOutDuration)
+                let removeAction = SKAction.run { wall.removeFromParent() }
+                
+                let sequence = SKAction.sequence([waitAction, fadeOutAction, removeAction])
+                wall.run(sequence)
+            }
+        }
+    
+    
     private func loadSecondRoom() {
         guard let scene = scene else { return }
         guard scene.size.width > 0 && scene.size.height > 0 else { return }
         scene.removeAllChildren()
         sceneSize = scene.size
         doorCounter = 0
-        margin = 0
-        columnsInside = 19
-        rowsInside = 8
-        totalColumns = columnsInside + 2
-        totalRows = rowsInside + 2
         rockSide = min((sceneSize.width - 2 * margin) / CGFloat(totalColumns), (sceneSize.height - 2 * margin) / CGFloat(totalRows))
         totalWidth = rockSide * CGFloat(totalColumns)
         totalHeight = rockSide * CGFloat(totalRows)
         offsetX = (sceneSize.width - totalWidth) / 2
         offsetY = (sceneSize.height - totalHeight) / 2
-        self.gridOrigin = CGPoint(x: offsetX + rockSide * 1.5, y: offsetY + rockSide * 1.5)
+        self.gridOrigin = CGPoint(x: offsetX + rockSide * Constants.GameConstants.gridOriginMultiplierX, y: offsetY + rockSide * Constants.GameConstants.gridOriginMultiplierY)
         self.gridCellSize = rockSide
         
         let _ = SKTexture(imageNamed: "CluckRockImage")
@@ -228,7 +258,7 @@ final class RoomManager {
             (3,4), (9,4)
         ]
         for (col, row) in obstacles {
-            let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * 2, height: rockSide * 2))
+            let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier))
             door.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
             doorArray.append(door)
             scene.addChild(door)

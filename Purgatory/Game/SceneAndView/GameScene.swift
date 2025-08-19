@@ -74,6 +74,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         dilogManager.playCutscene(introCutscene)
     }
     
+    private func startTrapCutscene() {
+        emma.removeLeader()
+        let trapCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .illusionTrap, onEndOfCutscene: { [self] in
+            emma.setupFollowing(leader: enri)
+        })
+        dilogManager.playCutscene(trapCutscene)
+    }
+    
     func startSecondRoomCutscene() {
         emma.removeLeader()
         let secondRoomCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
@@ -101,7 +109,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         
         enri = Enri(
             character: .Enri, calmState: calmTexture,
-            size: CGSize(width: 64, height: 64)
+            size: CGSize(width: Constants.GameConstants.characterSize, height: Constants.GameConstants.characterSize)
         )
         enri.position = CGPoint(x: frame.midX, y: frame.midY - 100)
         characters.append(enri)
@@ -134,13 +142,12 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         
         emma = Emma(
             character: .Emma, calmState: calmTexture,
-            size: CGSize(width: 64, height: 64)
+            size: CGSize(width: Constants.GameConstants.characterSize, height: Constants.GameConstants.characterSize)
         )
         emma.setupFollowing(leader: enri)
         emma.position = CGPoint(x: frame.midX - 100, y: frame.midY - 100)
         addChild(emma)
         characters.append(emma)
-
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -232,9 +239,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                     
                     self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
                         print("Right word")
-                    } wrongWord: {
+                    } wrongWord: { [self] in
                         print("Wrong word")
                         trigger.wasDialogTriggered = false
+                        self.startTrapCutscene()
                     }
 
                 }

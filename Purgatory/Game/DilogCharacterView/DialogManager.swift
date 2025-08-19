@@ -11,10 +11,12 @@ final class DialogManager {
 
     var onDialogEnd: (() -> Void)?
     var cutsceneManager: CutsceneManager?
+    var roomManager: RoomManager?
 
     init(scene: SKScene? = nil) {
         self.scene = scene
         self.cutsceneManager = CutsceneManager(dialogManager: self, scene: scene)
+        self.roomManager = RoomManager(scene: scene, dialogManager: self)
     }
 
     func presentSequence(_ dialogs: [(String, SKTexture?)]) {
@@ -90,6 +92,15 @@ final class DialogManager {
             ]
         case .secondRoom:
             actions = [
+                CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 0)
+            ]
+        case .illusionTrap:
+            actions = [
+                CutsceneAction(type: .runBlock({
+                    self.cutsceneManager?.dimTheLight()
+                    self.roomManager?.setCharactersPositions(enri: enri, emma: emma, enriPosition: Constants.GameConstants.defaultEnriPosition, emmaPosition: Constants.GameConstants.defaultEmmaPosition)
+                    
+                }), delay: 0),
                 CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 0)
             ]
         }

@@ -17,6 +17,7 @@ struct CutsceneAction {
 enum CutsceneType {
     case introduction
     case secondRoom
+    case illusionTrap
 }
     
 

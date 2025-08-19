@@ -20,6 +20,29 @@ enum Constants {
         
     }
     
+    enum GameConstants {
+        static let columnsInside: Int = 19
+        static let rowsInside: Int = 8
+        static let margin: CGFloat = 0
+        
+        static let characterSize: CGFloat = 64
+        static let characterHalfSize: CGFloat = 32
+        
+        static let defaultEnriPosition: (Int, Int) = (8, 3)
+        static let defaultEmmaPosition: (Int, Int) = (10, 3)
+        
+        static let fadeInDuration: Double = 0.3
+        static let fadeOutDuration: Double = 0.3
+        static let wallFadeInDuration: Double = 0.3
+        static let wallDelayMultiplier: Double = 0.2
+        
+        static let doorSizeMultiplier: CGFloat = 2.0
+        static let obstacleSizeMultiplier: CGFloat = 2.0
+        
+        static let gridOriginMultiplierX: CGFloat = 1.5
+        static let gridOriginMultiplierY: CGFloat = 1.5
+    }
+    
     enum WordsToguess {
         static let echo: [String] = ["Echo", "Air", "breeze", "Gust", "Blow"]
     }
