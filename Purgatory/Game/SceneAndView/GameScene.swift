@@ -16,6 +16,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     var dilogManager: DialogManager!
     var selectionManager: SelectionManager!
     
+    var lastTriggered: DialogTriggering?
+    
     private var characters: [GameCharacter] = []
     private var dialogTriggers: [DialogTriggerNode] = []
     
@@ -32,7 +34,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func initializeRoom() {
         guard size.width > 0 && size.height > 0 else {
-            // Если размер еще не установлен, повторим попытку через короткое время
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 self?.initializeRoom()
             }
@@ -68,15 +69,17 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     func startIntroCutscene() {
         emma.removeLeader()
-        let introCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .introduction, onEndOfCutscene: { [self] in
+        actionWithButtons(action: .hide)
+        let introCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .introduction, onEndOfCutscene: { [self] in
             emma.setupFollowing(leader: enri)
+            actionWithButtons(action: .show)
         })
         dilogManager.playCutscene(introCutscene)
     }
     
     private func startTrapCutscene() {
         emma.removeLeader()
-        let trapCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .illusionTrap, onEndOfCutscene: { [self] in
+        let trapCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .illusionTrap, onEndOfCutscene: { [self] in
             emma.setupFollowing(leader: enri)
         })
         dilogManager.playCutscene(trapCutscene)
@@ -84,7 +87,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     func startSecondRoomCutscene() {
         emma.removeLeader()
-        let secondRoomCutscene = dilogManager.createIntroCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
+        let secondRoomCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
             emma.setupFollowing(leader: enri)
         })
         dilogManager.playCutscene(secondRoomCutscene)
@@ -230,42 +233,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     private func actionAfterDialog(identity: TriggerIdentity, trigger: DialogTriggering) {
         switch identity {
         case .bloodWriting:
-            selectionManager.showCharacterSelectionButtons(for: characters) {
-                self.dilogManager.presentSequence([
-                    ("", SKTexture(image: .defaultEnri))
-                ])
-                self.dilogManager.onDialogEnd = {
-                    let words = Constants.WordsToguess.echo.shuffled()
-                    
-                    self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
-                        print("Right word")
-                    } wrongWord: { [self] in
-                        print("Wrong word")
-                        trigger.wasDialogTriggered = false
-                        self.startTrapCutscene()
-                    }
-
-                }
-            } emmaSelected: {
-                self.dilogManager.presentSequence([
-                    ("I will try", SKTexture(image: .defaultEmma))
-                ])
-                self.dilogManager.onDialogEnd = {
-                    let words = Constants.WordsToguess.echo.shuffled()
-                    
-                    self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
-                        print("Right word")
-                    } wrongWord: {
-                        print("Wrong word")
-                        trigger.wasDialogTriggered = false
-                        self.wrongAnswersCounter += 1
-                        if self.wrongAnswersCounter >= 1 {
-                            self.roomManager.trapInsideIllusion()
-                        }
-                    }
-
-                }
-            }
+            selection(trigger: trigger)
+            lastTriggered = trigger
         case .magicRune:
             break
         case .cursedMirror:
@@ -275,6 +244,47 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func guessAword() {
         
+    }
+    
+    func selection(trigger: DialogTriggering) {
+        selectionManager.showCharacterSelectionButtons(for: characters) {
+            self.dilogManager.presentSequence([
+                ("", SKTexture(image: .defaultEnri))
+            ])
+            self.dilogManager.onDialogEnd = {
+                let words = Constants.WordsToguess.echo.shuffled()
+                
+                self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+                    print("Right word")
+                    self.roomManager.releaseCharactersFromTrap()
+                } wrongWord: { [self] in
+                    print("Wrong word")
+                    trigger.wasDialogTriggered = false
+                    self.startTrapCutscene()
+                }
+
+            }
+        } emmaSelected: {
+            self.dilogManager.presentSequence([
+                ("I will try", SKTexture(image: .defaultEmma))
+            ])
+            self.dilogManager.onDialogEnd = {
+                let words = Constants.WordsToguess.echo.shuffled()
+                
+                self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+                    print("Right word")
+                    self.roomManager.releaseCharactersFromTrap()
+                } wrongWord: {
+                    print("Wrong word")
+                    trigger.wasDialogTriggered = false
+                    self.wrongAnswersCounter += 1
+                    if self.wrongAnswersCounter >= 1 {
+                        self.startTrapCutscene()
+                    }
+                }
+
+            }
+        }
     }
     
     private func animatedTransitionAmongRooms() {
@@ -324,7 +334,24 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
 
         addChild(downButton)
         moveButtons[.down] = downButton
+        
     }
+    
+    func actionWithButtons(action: ActionsWithButtons) {
+        switch action {
+        case .hide:
+            for button in moveButtons.values {
+                button.alpha = 0
+            }
+        case .show:
+            for button in moveButtons.values {
+                button.alpha = 0.5
+            }
+        }
+
+    }
+    
+    
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if dilogManager.isDialogActive() {
@@ -348,11 +375,12 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-        for button in moveButtons.values {
-            button.alpha = 0.5
+        if !dilogManager.cutsceneManager!.isPlaying {
+            for button in moveButtons.values {
+                button.alpha = 0.5
+            }
         }
-        
+
         var shouldStop = true
         for touch in touches {
             let location = touch.location(in: self)

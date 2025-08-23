@@ -3,7 +3,7 @@ import SpriteKit
 
 
 final class DialogManager {
-    weak var scene: SKScene?
+    weak var scene: GameFortuneMergeScene?
     
     private var dialogQueue: [(String, SKTexture?)] = []
     var currentDialog: DilogCharacterView?
@@ -13,7 +13,7 @@ final class DialogManager {
     var cutsceneManager: CutsceneManager?
     var roomManager: RoomManager?
 
-    init(scene: SKScene? = nil) {
+    init(scene: GameFortuneMergeScene? = nil) {
         self.scene = scene
         self.cutsceneManager = CutsceneManager(dialogManager: self, scene: scene)
         self.roomManager = RoomManager(scene: scene, dialogManager: self)
@@ -76,19 +76,23 @@ final class DialogManager {
         return currentDialog != nil || !dialogQueue.isEmpty
     }
     
-    func createIntroCutscene(enri: GameCharacter, emma: GameCharacter, cutsceneType: CutsceneType, onEndOfCutscene: @escaping () -> Void) -> [CutsceneAction] {
+    func createCutscene(enri: GameCharacter, emma: GameCharacter, cutsceneType: CutsceneType, onEndOfCutscene: @escaping () -> Void) -> [CutsceneAction] {
         var actions: [CutsceneAction] = []
+        
         switch cutsceneType {
         case .introduction:
             actions = [
-                CutsceneAction(type: .runBlock({
+                CutsceneAction(type: .runBlock({ [self] in
                     self.cutsceneManager?.dimTheLight()
+                    
                 }), delay: 0),
                 CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 5),
                 CutsceneAction(type: .moveCharacter(emma, to: CGPoint(x: emma.position.x - 100, y: emma.position.y), duration: 2.0), delay: 0),
                 CutsceneAction(type: .showDialog("Let's explore together!", texture: SKTexture(image: .defaultEmma)), delay: 2),
                 CutsceneAction(type: .moveCharacter(enri, to: CGPoint(x: enri.position.x + 100, y: enri.position.y), duration: 2), delay: 0),
-                CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 2)
+                CutsceneAction(type: .runBlock({
+                    onEndOfCutscene()
+                }), delay: 2)
             ]
         case .secondRoom:
             actions = [
@@ -96,12 +100,30 @@ final class DialogManager {
             ]
         case .illusionTrap:
             actions = [
-                CutsceneAction(type: .runBlock({
+                
+                CutsceneAction(type: .runBlock({ [self] in
                     self.cutsceneManager?.dimTheLight()
+                    scene?.actionWithButtons(action: .hide)
                     self.roomManager?.setCharactersPositions(enri: enri, emma: emma, enriPosition: Constants.GameConstants.defaultEnriPosition, emmaPosition: Constants.GameConstants.defaultEmmaPosition)
                     
                 }), delay: 0),
-                CutsceneAction(type: .runBlock(onEndOfCutscene), delay: 0)
+                
+                CutsceneAction(type: .runBlock({
+                    self.scene?.roomManager.trapInsideIllusion()
+                }), delay: 5),
+                
+                CutsceneAction(type: .showDialog("You have the last attempt", texture: nil), delay: 0),
+                CutsceneAction(type: .showDialog("DO YOUR BEST", texture: nil), delay: 0),
+                
+                CutsceneAction(type: .runBlock({
+                    guard let trigger = self.scene?.lastTriggered else { return }
+                    self.scene?.selection(trigger: trigger)
+                }), delay: 0),
+                
+                CutsceneAction(type: .runBlock({
+                    onEndOfCutscene()
+//                    self.scene?.actionWithButtons(action: .show)
+                }), delay: 0)
             ]
         }
 

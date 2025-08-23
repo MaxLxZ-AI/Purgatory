@@ -75,7 +75,7 @@ final class SelectionManager {
                 wordToGuess: nil,
                 size: CGSize(width: 200, height: 50)
             )
-            
+            button.zPosition = 999
             button.position = CGPoint(
                 x: scene?.frame.midX ?? 0,
                 y: (scene?.frame.midY ?? 0) + CGFloat(index * 60)
@@ -109,6 +109,7 @@ final class SelectionManager {
                 wordToGuess: word,
                 size: CGSize(width: 200, height: 50)
             )
+            button.zPosition = 999
             
             button.position = CGPoint(
                 x: scene?.frame.midX ?? 0,

@@ -35,6 +35,7 @@ enum Constants {
         static let fadeOutDuration: Double = 0.3
         static let wallFadeInDuration: Double = 0.3
         static let wallDelayMultiplier: Double = 0.2
+        static let wallFadeDelayMultiplier: Double = 0.1
         
         static let doorSizeMultiplier: CGFloat = 2.0
         static let obstacleSizeMultiplier: CGFloat = 2.0
@@ -81,6 +82,11 @@ enum Constants {
             }
         }
     }
+}
+
+enum ActionsWithButtons {
+    case hide
+    case show
 }
 
 

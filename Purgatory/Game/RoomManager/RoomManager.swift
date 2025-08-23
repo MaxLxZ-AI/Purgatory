@@ -204,7 +204,7 @@ final class RoomManager {
     func releaseCharactersFromTrap() {
         wasWordGuessed = true
         for (index, wall) in trapWalls.enumerated() {
-            let delay = Double(index) * Constants.GameConstants.wallDelayMultiplier
+            let delay = Double(index) * Constants.GameConstants.wallFadeDelayMultiplier
                 
                 let waitAction = SKAction.wait(forDuration: delay)
                 let fadeOutAction = SKAction.fadeOut(withDuration: Constants.GameConstants.fadeOutDuration)
