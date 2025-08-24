@@ -92,7 +92,7 @@ final class RoomManager {
         for (col, row) in obstacles {
             let rock = BloodWallWriting(texture: SKTexture(image: .wft),
                                                 size: CGSize(width: rockSide, height: rockSide),
-                      dialogManager: manager, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
+                                        dialogManager: manager, wasPazzledSolved: Constants.UserDefaultsConstants.wasPazzleSolved, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.bloodWriting)
             rock.size = CGSize(width: rockSide * Constants.GameConstants.obstacleSizeMultiplier, height: rockSide * Constants.GameConstants.obstacleSizeMultiplier)
             rock.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
             scene.addChild(rock)

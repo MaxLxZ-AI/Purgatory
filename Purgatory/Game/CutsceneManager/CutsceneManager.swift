@@ -18,6 +18,7 @@ enum CutsceneType {
     case introduction
     case secondRoom
     case illusionTrap
+    case lastAttemptHasBeenLost
 }
     
 
@@ -57,6 +58,23 @@ class CutsceneManager {
             .fadeIn(withDuration: 0),
             .fadeOut(withDuration: 5),
             .removeFromParent()
+        ]))
+    }
+    
+    func dimTheLightBeforeExtraction() {
+        guard let scene = scene else {
+            return
+        }
+        let coverNode = SKSpriteNode(color: .black, size: scene.size)
+        
+        coverNode.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        coverNode.zPosition = 9999
+        coverNode.color = .black
+        coverNode.alpha = 0
+        scene.addChild(coverNode)
+        coverNode.run(.sequence([
+            .fadeIn(withDuration: 5),
+            
         ]))
     }
     

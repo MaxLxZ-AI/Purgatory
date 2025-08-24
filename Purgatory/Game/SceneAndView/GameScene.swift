@@ -85,6 +85,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         dilogManager.playCutscene(trapCutscene)
     }
     
+    private func startExtractionCutscene() {
+        emma.removeLeader()
+        let trapCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .lastAttemptHasBeenLost, onEndOfCutscene: {
+            
+        })
+        dilogManager.playCutscene(trapCutscene)
+    }
+    
     func startSecondRoomCutscene() {
         emma.removeLeader()
         let secondRoomCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
@@ -161,6 +169,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         handleContact(characterBody: bodyB, otherBody: bodyA)
     }
     
+    func dismissGameWithoutAnimation() {
+        parentFortuneMergeView?.dismissWithoutAnimation()
+    }
+    
+    func exitGame() {
+        dismissGameWithoutAnimation()
+    }
+    
     private func handleContact(characterBody: SKPhysicsBody, otherBody: SKPhysicsBody) {
         guard characterBody.categoryBitMask == PhysicsCategory.character,
               let character = characterBody.node as? GameCharacter else { return }
@@ -182,15 +198,27 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
 
         if otherBody.categoryBitMask == PhysicsCategory.dialogTrigger,
            let trigger = otherBody.node as? DialogTriggering {
-            enri.stopMoving()
-            trigger.characterDidEnter(character)
-            
-            trigger.secondDialog(onDialogEnd: { [self] in
-                if trigger.wasDialogTriggered { return }
-                trigger.wasDialogTriggered = true
-                
-                actionAfterDialog(identity: trigger.identity, trigger: trigger)
-            })
+            if !dilogManager.isCutscenePlaying() {
+                enri.stopMoving()
+                trigger.characterDidEnter(character)
+                if !trigger.wasDialogTriggered  {
+                    if !Constants.UserDefaultsConstants.wasPazzleSolved {
+                        trigger.secondDialog(onDialogEnd: { [self] in
+                            
+                                trigger.wasDialogTriggered = true
+                                
+                                actionAfterDialog(identity: trigger.identity, trigger: trigger)
+                        })
+                    } else {
+                        trigger.solved {
+                            trigger.wasDialogTriggered = false
+                        }
+                    }
+
+                }
+            }
+
+
             
         }
         if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
@@ -257,10 +285,17 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                 self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
                     print("Right word")
                     self.roomManager.releaseCharactersFromTrap()
+                    Constants.UserDefaultsConstants.wasPazzleSolved = true
                 } wrongWord: { [self] in
                     print("Wrong word")
                     trigger.wasDialogTriggered = false
-                    self.startTrapCutscene()
+                    self.wrongAnswersCounter += 1
+                    if self.wrongAnswersCounter == 1 {
+                        self.startTrapCutscene()
+                    }
+                    if self.wrongAnswersCounter == 2 {
+                        self.startExtractionCutscene()
+                    }
                 }
 
             }
@@ -274,12 +309,16 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                 self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
                     print("Right word")
                     self.roomManager.releaseCharactersFromTrap()
+                    Constants.UserDefaultsConstants.wasPazzleSolved = true
                 } wrongWord: {
                     print("Wrong word")
                     trigger.wasDialogTriggered = false
                     self.wrongAnswersCounter += 1
-                    if self.wrongAnswersCounter >= 1 {
+                    if self.wrongAnswersCounter == 1 {
                         self.startTrapCutscene()
+                    }
+                    if self.wrongAnswersCounter == 2 {
+                        self.startExtractionCutscene()
                     }
                 }
 

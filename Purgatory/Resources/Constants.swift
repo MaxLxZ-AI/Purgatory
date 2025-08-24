@@ -1,6 +1,8 @@
 import SpriteKit
 
 enum Constants {
+    private static let userDefaultManager = UserDefaults.standard
+    
     enum LoadingConstants {
         static let loadingDuration: Double = 12
         static let animationDuration: Double = 5
@@ -8,6 +10,13 @@ enum Constants {
         static let delayBeforSecondAnimation: Double = 1
         static let initialOpacity: Double = 1
         static let endOpacity: Double = 0
+    }
+    
+    enum UserDefaultsConstants {
+        static var wasPazzleSolved: Bool {
+            get { userDefaultManager.value(forKey: #function) as? Bool ?? false }
+            set { userDefaultManager.set(newValue, forKey: #function) }
+        }
     }
     
     enum MainMenuConstants {

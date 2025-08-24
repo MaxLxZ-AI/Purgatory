@@ -122,9 +122,21 @@ final class DialogManager {
                 
                 CutsceneAction(type: .runBlock({
                     onEndOfCutscene()
-//                    self.scene?.actionWithButtons(action: .show)
                 }), delay: 0)
             ]
+        case .lastAttemptHasBeenLost:
+            actions = [
+                CutsceneAction(type: .runBlock({
+                    self.cutsceneManager?.dimTheLightBeforeExtraction()
+                }), delay: 0),
+                CutsceneAction(type: .showDialog("JUST DIE", texture: nil), delay: 0),
+                CutsceneAction(type: .runBlock({
+                    self.scene?.dismissGameWithoutAnimation()
+                }), delay: 6)
+                
+
+            ]
+
         }
 
         

@@ -19,6 +19,14 @@ struct GameFortuneMergeView: View {
         }
     }
     
+    func dismissWithoutAnimation() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            isGamePresented = false
+        }
+    }
+    
     private func setupFortuneMergeScene() {
         gameFortuneMergeScene.scaleMode = .aspectFill
         gameFortuneMergeScene.size = UIScreen.main.bounds.size
