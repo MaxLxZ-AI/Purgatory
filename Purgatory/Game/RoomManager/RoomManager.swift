@@ -255,7 +255,7 @@ final class RoomManager {
         }
 
         let obstacles: [(Int, Int)] = [
-            (3,4), (9,4)
+            (3,4), (18,4)
         ]
         for (col, row) in obstacles {
             let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier))
@@ -263,6 +263,16 @@ final class RoomManager {
             doorArray.append(door)
             scene.addChild(door)
             doorCounter += 1
+        }
+        
+        let courpse: [(Int, Int)] = [
+            (12,4)
+        ]
+        
+        for (col, row) in courpse {
+            let courpse = Courpse(texture: SKTexture(image: .boundedCourpse), size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier), dialogManager: dialogManager!, wasPazzledSolved: false, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.corpseStrappedToATable)
+            courpse.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
+            scene.addChild(courpse)
         }
     }
 }

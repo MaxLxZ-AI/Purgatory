@@ -134,9 +134,20 @@ final class DialogManager {
                     self.scene?.dismissGameWithoutAnimation()
                 }), delay: 6)
                 
-
+                
             ]
 
+        case .corpseStrappedToATable:
+            actions = [
+                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEmma)), delay: 0),
+                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEmma)), delay: 0),
+                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEnri)), delay: 0),
+                
+                CutsceneAction(type: .runBlock({
+                    guard let trigger = self.scene?.lastTriggered else { return }
+                    self.scene?.selection(trigger: trigger)
+                }), delay: 0),
+            ]
         }
 
         

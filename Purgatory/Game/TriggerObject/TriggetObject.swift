@@ -4,6 +4,7 @@ enum TriggerIdentity {
     case bloodWriting
     case magicRune
     case cursedMirror
+    case corpseStrappedToATable
 }
 
 protocol DialogTriggering: AnyObject {
@@ -124,6 +125,42 @@ final class BloodWallWriting: DialogTriggerNode {
         dialogManager.presentSequence([
             ("I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", SKTexture(image: .defaultEmma)),
             ("I suppose we should choose someone who can guess the word, who will it be?", SKTexture(image: .defaultEmma))
+        ])
+        
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
+    }
+}
+
+final class Courpse: DialogTriggerNode {
+    override func firstDialog(onDialogEnd: (() -> Void)?) {
+        dialogManager.presentSequence([
+            ("Do you see this courpse", SKTexture(image: .defaultEmma)),
+            ("You are right, we need to take this shard from him, let select who is gonna do that.", SKTexture(image: .defaultEnri)),
+            ("Yea, let's do it", SKTexture(image: .defaultEmma))
+        ])
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
+        
+    }
+    
+    override func solved(onDialogEnd: (() -> Void)?) {
+        dialogManager.presentSequence([
+            ("", SKTexture(image: .defaultEnri))
+        ])
+        
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
+    }
+
+    
+    override func secondDialog(onDialogEnd: (() -> Void)?) {
+        dialogManager.presentSequence([
+            ("JVSJD", SKTexture(image: .defaultEmma)),
+            ("KDKSG", SKTexture(image: .defaultEmma))
         ])
         
         dialogManager.onDialogEnd = {

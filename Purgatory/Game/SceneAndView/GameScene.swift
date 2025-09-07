@@ -117,7 +117,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     private func setUpEnri() {
         let calmTexture = SKTexture(image: .upWalkingClmEnri)
-        
         enri = Enri(
             character: .Enri, calmState: calmTexture,
             size: CGSize(width: Constants.GameConstants.characterSize, height: Constants.GameConstants.characterSize)
@@ -202,7 +201,7 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                 enri.stopMoving()
                 trigger.characterDidEnter(character)
                 if !trigger.wasDialogTriggered  {
-                    if !Constants.UserDefaultsConstants.wasPazzleSolved {
+                    if !trigger.wasPazzledSolved {
                         trigger.secondDialog(onDialogEnd: { [self] in
                             
                                 trigger.wasDialogTriggered = true
@@ -217,9 +216,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
 
                 }
             }
-
-
-            
         }
         if otherBody.categoryBitMask == PhysicsCategory.door, let door = otherBody.node as? Door {
             if roomManager.doorArray.count >= 2 {
@@ -267,8 +263,12 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             break
         case .cursedMirror:
             break
+        case .corpseStrappedToATable:
+            selection(trigger: trigger)
+            lastTriggered = trigger
         }
     }
+    
     
     private func guessAword() {
         
@@ -276,53 +276,92 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     
     func selection(trigger: DialogTriggering) {
         selectionManager.showCharacterSelectionButtons(for: characters) {
-            self.dilogManager.presentSequence([
-                ("", SKTexture(image: .defaultEnri))
-            ])
-            self.dilogManager.onDialogEnd = {
-                let words = Constants.WordsToguess.echo.shuffled()
+            switch trigger.identity {
+            case .bloodWriting:
+                self.dilogManager.presentSequence([
+                    ("", SKTexture(image: .defaultEnri))
+                    
+                ])
+                self.afterElections(trigger: trigger)
+            case .magicRune:
+                break
+            case .cursedMirror:
+                break
+            case .corpseStrappedToATable:
+                self.dilogManager.presentSequence([
+                    ("", SKTexture(image: .defaultEnri))
+                    
+                ])
                 
-                self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
-                    print("Right word")
-                    self.roomManager.releaseCharactersFromTrap()
-                    Constants.UserDefaultsConstants.wasPazzleSolved = true
-                } wrongWord: { [self] in
-                    print("Wrong word")
-                    trigger.wasDialogTriggered = false
-                    self.wrongAnswersCounter += 1
-                    if self.wrongAnswersCounter == 1 {
-                        self.startTrapCutscene()
-                    }
-                    if self.wrongAnswersCounter == 2 {
-                        self.startExtractionCutscene()
-                    }
-                }
-
             }
+
+
         } emmaSelected: {
-            self.dilogManager.presentSequence([
-                ("I will try", SKTexture(image: .defaultEmma))
-            ])
-            self.dilogManager.onDialogEnd = {
-                let words = Constants.WordsToguess.echo.shuffled()
-                
-                self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
-                    print("Right word")
-                    self.roomManager.releaseCharactersFromTrap()
-                    Constants.UserDefaultsConstants.wasPazzleSolved = true
-                } wrongWord: {
-                    print("Wrong word")
-                    trigger.wasDialogTriggered = false
-                    self.wrongAnswersCounter += 1
-                    if self.wrongAnswersCounter == 1 {
-                        self.startTrapCutscene()
-                    }
-                    if self.wrongAnswersCounter == 2 {
-                        self.startExtractionCutscene()
-                    }
-                }
-
+            switch trigger.identity {
+            case .bloodWriting:
+                self.dilogManager.presentSequence([
+                    ("I will try", SKTexture(image: .defaultEmma))
+                ])
+                self.afterElections(trigger: trigger)
+            case .magicRune:
+                break
+            case .cursedMirror:
+                break
+            case .corpseStrappedToATable:
+                self.dilogManager.presentSequence([
+                    ("I will try", SKTexture(image: .defaultEmma))
+                ])
+                self.afterElections(trigger: trigger)
             }
+
+        }
+    }
+    
+    private func afterElections(trigger: DialogTriggering) {
+        switch trigger.identity {
+        case .bloodWriting:
+            bloodPuzzle(trigger: trigger)
+        case .magicRune:
+            break
+        case .cursedMirror:
+            break
+        case .corpseStrappedToATable:
+            attemptToGetIDKOutOfCorpse(trigger: trigger)
+        }
+
+    }
+    
+    private func bloodPuzzle(trigger: DialogTriggering) {
+        self.dilogManager.onDialogEnd = {
+            let words = Constants.WordsToguess.echo.shuffled()
+            
+            self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+                print("Right word")
+                self.roomManager.releaseCharactersFromTrap()
+                trigger.wasPazzledSolved = true
+            } wrongWord: { [self] in
+                print("Wrong word")
+                trigger.wasDialogTriggered = false
+                self.wrongAnswersCounter += 1
+                if self.wrongAnswersCounter == 1 {
+                    self.startTrapCutscene()
+                }
+                if self.wrongAnswersCounter == 2 {
+                    self.startExtractionCutscene()
+                }
+            }
+
+        }
+    }
+    
+    private func attemptToGetIDKOutOfCorpse(trigger: DialogTriggering) {
+        self.dilogManager.onDialogEnd = {
+            self.selectionManager.pullOutShard {
+                
+            } fail: {
+                
+            }
+
         }
     }
     

@@ -19,6 +19,7 @@ enum CutsceneType {
     case secondRoom
     case illusionTrap
     case lastAttemptHasBeenLost
+    case corpseStrappedToATable
 }
     
 

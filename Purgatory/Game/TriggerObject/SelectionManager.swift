@@ -144,6 +144,21 @@ final class SelectionManager {
         }
     }
     
+    func pullOutShard(success: (() -> Void), fail: (() -> Void)) {
+        var wasPulled = shouldHappen(percentage: 50)
+        if wasPulled {
+            success()
+        } else {
+            fail()
+        }
+        
+    }
+    
+    private func shouldHappen(percentage: Double) -> Bool {
+        let randomValue = Double.random(in: 0...100)
+        return randomValue <= percentage
+    }
+    
     private func handleWordSelection(_ word: String, rightWord: (() -> Void)?, wrongWord: (() -> Void)?) {
         if word == "Echo" {
             clearExistingButtons()
