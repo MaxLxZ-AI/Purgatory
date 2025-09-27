@@ -7,6 +7,12 @@ enum TriggerIdentity {
     case corpseStrappedToATable
 }
 
+enum PlaceableObjects {
+    case CrackedHolySymbol
+    case BloodySurgicalKnife
+    case MeltedCandle
+}
+
 protocol DialogTriggering: AnyObject {
     var identity: TriggerIdentity { get }
     var wasDialogTriggered: Bool { get set }
@@ -159,12 +165,22 @@ final class Courpse: DialogTriggerNode {
     
     override func secondDialog(onDialogEnd: (() -> Void)?) {
         dialogManager.presentSequence([
-            ("JVSJD", SKTexture(image: .defaultEmma)),
-            ("KDKSG", SKTexture(image: .defaultEmma))
+            ("Do you see this courpse", SKTexture(image: .defaultEmma)),
+            ("You are right, we need to take this shard from him, let select who is gonna do that.", SKTexture(image: .defaultEmma)),
+            ("", SKTexture(image: .defaultEnri)),
+            ("Yea, let's do it", SKTexture(image: .defaultEmma))
         ])
         
         dialogManager.onDialogEnd = {
             onDialogEnd?()
         }
     }
+}
+
+final class Rack: SKSpriteNode {
+    
+}
+
+final class PlaceableObject: SKSpriteNode {
+    
 }

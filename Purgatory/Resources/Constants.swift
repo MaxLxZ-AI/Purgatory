@@ -40,6 +40,9 @@ enum Constants {
         static let defaultEnriPosition: (Int, Int) = (8, 3)
         static let defaultEmmaPosition: (Int, Int) = (10, 3)
         
+        static let boundedEnriPosition: (Int, Int) = (8, 3)
+        static let boundedEmmaPosition: (Int, Int) = (8, 5)
+        
         static let fadeInDuration: Double = 0.3
         static let fadeOutDuration: Double = 0.3
         static let wallFadeInDuration: Double = 0.3

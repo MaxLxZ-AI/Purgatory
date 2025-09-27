@@ -93,6 +93,13 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         dilogManager.playCutscene(trapCutscene)
     }
     
+    private func startTortureCutscene() {
+        let tortureCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .corpseStrappedToATable) {
+            
+        }
+        dilogManager.playCutscene(tortureCutscene)
+    }
+    
     func startSecondRoomCutscene() {
         emma.removeLeader()
         let secondRoomCutscene = dilogManager.createCutscene(enri: enri, emma: emma, cutsceneType: .secondRoom, onEndOfCutscene: { [self] in
@@ -357,9 +364,10 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     private func attemptToGetIDKOutOfCorpse(trigger: DialogTriggering) {
         self.dilogManager.onDialogEnd = {
             self.selectionManager.pullOutShard {
-                
+                //succses
             } fail: {
-                
+                self.startTortureCutscene()
+                trigger.wasDialogTriggered = false
             }
 
         }

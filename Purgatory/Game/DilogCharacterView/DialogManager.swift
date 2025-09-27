@@ -139,13 +139,13 @@ final class DialogManager {
 
         case .corpseStrappedToATable:
             actions = [
-                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEmma)), delay: 0),
-                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEmma)), delay: 0),
-                CutsceneAction(type: .showDialog("", texture: SKTexture(image: .defaultEnri)), delay: 0),
-                
-                CutsceneAction(type: .runBlock({
-                    guard let trigger = self.scene?.lastTriggered else { return }
-                    self.scene?.selection(trigger: trigger)
+                CutsceneAction(type: .runBlock({ [self] in
+                    self.cutsceneManager?.dimTheLight()
+                    scene?.actionWithButtons(action: .hide)
+                    self.roomManager?.setCharactersPositions(enri: enri, emma: emma, enriPosition: Constants.GameConstants.defaultEnriPosition, emmaPosition: Constants.GameConstants.boundedEmmaPosition)
+                    emma.zRotation = CGFloat.pi / 2
+                    enri.removeFromParent()
+                    
                 }), delay: 0),
             ]
         }
