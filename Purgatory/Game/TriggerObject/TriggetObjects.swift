@@ -5,6 +5,7 @@ enum TriggerIdentity {
     case magicRune
     case cursedMirror
     case corpseStrappedToATable
+    case pillar
 }
 
 enum PlaceableObjects {
@@ -177,10 +178,47 @@ final class Courpse: DialogTriggerNode {
     }
 }
 
-final class Rack: SKSpriteNode {
+final class Pillar: DialogTriggerNode {
+    var object: PlaceableObject?
+    
+    init(object: PlaceableObject? = nil, texture: SKTexture, size: CGSize, dialogManager: DialogManager, wasPazzledSolved: Bool, triggerRadius: TriggerRadius, identity: TriggerIdentity) {
+        self.object = object
+        super.init(texture: texture, size: size, dialogManager: dialogManager, wasPazzledSolved: wasPazzledSolved, triggerRadius: triggerRadius, identity: identity)
+        setUpObject()
+    }
+    
+    @MainActor required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func secondDialog(onDialogEnd: (() -> Void)?) {
+        dialogManager.presentSequence([
+            ("", SKTexture(image: .defaultEnri))
+        ])
+        
+        dialogManager.onDialogEnd = {
+            onDialogEnd?()
+        }
+    }
+    
+    func setUpObject() {
+        guard let obj = object else { return }
+        obj.position = CGPoint(x: self.position.x, y: self.position.y + self.size.height / 2)
+        obj.zPosition = self.zPosition + 1
+        self.addChild(obj)
+    }
     
 }
 
 final class PlaceableObject: SKSpriteNode {
+    let type: PlaceableObjects
+    init(texture: SKTexture, size: CGSize, type: PlaceableObjects) {
+        self.type = type
+        super.init(texture: texture, color: .clear, size: size)
+    }
     
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }

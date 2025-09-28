@@ -93,6 +93,14 @@ enum Constants {
                 static let right: SKTexture = SKTexture(image: .rightCalmEmma)
             }
         }
+        
+    }
+    enum objectSizes {
+        static let pillarSize = CGSize(width: 90, height: 90)
+        
+        static let knifeSize = CGSize(width: 40, height: 40)
+        static let candleSize = CGSize(width: 40, height: 40)
+        static let crossSize = CGSize(width: 40, height: 60)
     }
 }
 

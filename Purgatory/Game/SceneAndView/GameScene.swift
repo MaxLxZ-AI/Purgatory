@@ -220,7 +220,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                             trigger.wasDialogTriggered = false
                         }
                     }
-
                 }
             }
         }
@@ -273,13 +272,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         case .corpseStrappedToATable:
             selection(trigger: trigger)
             lastTriggered = trigger
+        case .pillar:
+            lastTriggered = trigger
+            guard let pillar = trigger as? Pillar else { return }
+            pillar.object?.removeFromParent()
+            pillar.object = nil
         }
     }
     
-    
-    private func guessAword() {
-        
-    }
     
     func selection(trigger: DialogTriggering) {
         selectionManager.showCharacterSelectionButtons(for: characters) {
@@ -300,6 +300,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                     
                 ])
                 
+            case .pillar:
+                break
             }
 
 
@@ -319,8 +321,9 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                     ("I will try", SKTexture(image: .defaultEmma))
                 ])
                 self.afterElections(trigger: trigger)
+            case .pillar:
+                break
             }
-
         }
     }
     
@@ -334,6 +337,8 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             break
         case .corpseStrappedToATable:
             attemptToGetIDKOutOfCorpse(trigger: trigger)
+        case .pillar:
+            break
         }
 
     }

@@ -254,10 +254,10 @@ final class RoomManager {
             scene.addChild(rightRock)
         }
 
-        let obstacles: [(Int, Int)] = [
-            (3,4), (18,4)
+        let doors: [(Int, Int)] = [
+            (3,2), (18,2)
         ]
-        for (col, row) in obstacles {
+        for (col, row) in doors {
             let door = Door(id: "Door\(doorCounter)", wasEntered: false, size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier))
             door.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
             doorArray.append(door)
@@ -265,14 +265,29 @@ final class RoomManager {
             doorCounter += 1
         }
         
-        let courpse: [(Int, Int)] = [
-            (12,4)
+        let pillars: [(Int, Int)] = [
+            (5,6), (9,6), (13, 6)
         ]
+        let pillarTexture = SKTexture(image: .pillar)
         
-        for (col, row) in courpse {
-            let courpse = Courpse(texture: SKTexture(image: .boundedCourpse), size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier), dialogManager: dialogManager!, wasPazzledSolved: false, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.corpseStrappedToATable)
-            courpse.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
-            scene.addChild(courpse)
+        let knifeTextrue = SKTexture(image: .bloodCoveredKnife)
+        let candleTexture = SKTexture(image: .candle)
+        let crossTextrure = SKTexture(image: .cross)
+        
+        let array: [PlaceableObject] = [PlaceableObject(texture: knifeTextrue, size: Constants.objectSizes.knifeSize, type: PlaceableObjects.BloodySurgicalKnife), PlaceableObject(texture: candleTexture, size: Constants.objectSizes.candleSize, type: PlaceableObjects.MeltedCandle), PlaceableObject(texture: crossTextrure, size: Constants.objectSizes.crossSize, type: PlaceableObjects.CrackedHolySymbol)]
+        for (index, (col, row)) in pillars.enumerated() {
+            let pillar = Pillar(object: array[index], texture: pillarTexture, size: Constants.objectSizes.pillarSize, dialogManager: dialogManager!, wasPazzledSolved: false, triggerRadius: TriggerRadius(radius: 100), identity: .pillar)
+            pillar.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
+            scene.addChild(pillar)
         }
+//        let courpse: [(Int, Int)] = [
+//            (12,9)
+//        ]
+//        
+//        for (col, row) in courpse {
+//            let courpse = Courpse(texture: SKTexture(image: .boundedCourpse), size: CGSize(width: rockSide * Constants.GameConstants.doorSizeMultiplier, height: rockSide * Constants.GameConstants.doorSizeMultiplier), dialogManager: dialogManager!, wasPazzledSolved: false, triggerRadius: TriggerRadius(radius: 100), identity: TriggerIdentity.corpseStrappedToATable)
+//            courpse.position = CGPoint(x: gridOrigin.x + CGFloat(col) * rockSide, y: gridOrigin.y + CGFloat(row) * rockSide)
+//            scene.addChild(courpse)
+//        }
     }
 }
