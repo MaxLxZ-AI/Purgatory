@@ -21,6 +21,9 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
     private var characters: [GameCharacter] = []
     private var dialogTriggers: [DialogTriggerNode] = []
     
+    private var objectArray = ["Leave"]
+    var placeableArray: [PlaceableObjects] = [.BloodySurgicalKnife, .MeltedCandle, .CrackedHolySymbol]
+    
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         dilogManager = DialogManager(scene: self)
@@ -273,10 +276,14 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             selection(trigger: trigger)
             lastTriggered = trigger
         case .pillar:
+            orderPuzzle(trigger: trigger)
             lastTriggered = trigger
-            guard let pillar = trigger as? Pillar else { return }
-            pillar.object?.removeFromParent()
-            pillar.object = nil
+        }
+    }
+    
+    func checkOrder() {
+        if placeableArray == Constants.Arrays.rightOrder {
+            print("Right order")
         }
     }
     
@@ -343,15 +350,74 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
 
     }
     
+    func setUpPillarObject(pillar: Pillar, index: Int) {
+        let obj = objectArray[index]
+        switch obj {
+        case "Holy Symbol":
+            let symbol = PlaceableObject(texture: SKTexture(image: .cross), size: Constants.objectSizes.crossSize, type: PlaceableObjects.CrackedHolySymbol)
+            pillar.object = symbol
+            symbol.position.y = pillar.size.height / 2
+            pillar.addChild(symbol)
+            objectArray.remove(at: index)
+            placeableArray.append(symbol.type)
+        case "Knife":
+            let knife = PlaceableObject(texture: SKTexture(image: .bloodCoveredKnife), size: Constants.objectSizes.knifeSize, type: PlaceableObjects.BloodySurgicalKnife)
+            pillar.object = knife
+            knife.position.y = pillar.size.height / 2
+            pillar.addChild(knife)
+            objectArray.remove(at: index)
+            placeableArray.append(knife.type)
+        case "Candle":
+            let candle = PlaceableObject(texture: SKTexture(image: .candle), size: Constants.objectSizes.candleSize, type: PlaceableObjects.MeltedCandle)
+            pillar.object = candle
+            pillar.addChild(candle)
+            candle.position.y = pillar.size.height / 2
+            objectArray.remove(at: index)
+            placeableArray.append(candle.type)
+        default:
+            break
+        }
+    }
+    
+    private func orderPuzzle(trigger: DialogTriggering) {
+        guard let pillar = trigger as? Pillar else { return }
+        if pillar.wasObjectTaken {
+            self.selectionManager.selectObject(objects: objectArray, action: {
+                trigger.wasDialogTriggered = false
+                pillar.wasObjectTaken.toggle()
+                
+            }, leave: {
+                trigger.wasDialogTriggered = false
+            }, trigger: pillar)
+
+        } else {
+            let actions = Constants.Arrays.actions
+            
+            self.selectionManager.showWordsSelectionButtons(for: actions, rightWord: {
+                self.lastTriggered = trigger
+                
+                pillar.object?.removeFromParent()
+                let rawValue = pillar.object?.type.rawValue
+                self.objectArray.append(rawValue!)
+                pillar.object = nil
+                pillar.wasObjectTaken.toggle()
+                trigger.wasDialogTriggered = false
+            }, wrongWord: {
+                trigger.wasDialogTriggered = false
+            }, trigger: trigger)
+        }
+
+    }
+    
     private func bloodPuzzle(trigger: DialogTriggering) {
         self.dilogManager.onDialogEnd = {
-            let words = Constants.WordsToguess.echo.shuffled()
+            let words = Constants.Arrays.echo.shuffled()
             
-            self.selectionManager.showWordsSelectionButtons(for: words.dropLast()) {
+            self.selectionManager.showWordsSelectionButtons(for: words.dropLast(), rightWord: {
                 print("Right word")
                 self.roomManager.releaseCharactersFromTrap()
                 trigger.wasPazzledSolved = true
-            } wrongWord: { [self] in
+            }, wrongWord: { [self] in
                 print("Wrong word")
                 trigger.wasDialogTriggered = false
                 self.wrongAnswersCounter += 1
@@ -361,15 +427,13 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
                 if self.wrongAnswersCounter == 2 {
                     self.startExtractionCutscene()
                 }
-            }
-
+            }, trigger: trigger)
         }
     }
     
     private func attemptToGetIDKOutOfCorpse(trigger: DialogTriggering) {
         self.dilogManager.onDialogEnd = {
             self.selectionManager.pullOutShard {
-                //succses
             } fail: {
                 self.startTortureCutscene()
                 trigger.wasDialogTriggered = false

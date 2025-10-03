@@ -56,9 +56,12 @@ enum Constants {
         static let gridOriginMultiplierY: CGFloat = 1.5
     }
     
-    enum WordsToguess {
+    enum Arrays {
         static let echo: [String] = ["Echo", "Air", "breeze", "Gust", "Blow"]
+        static let actions: [String] = ["Leave", "Take"]
+        static let rightOrder: [PlaceableObjects] = [.CrackedHolySymbol, .BloodySurgicalKnife, .MeltedCandle]
     }
+    
     
     enum CharactersTextures {
         enum Enri {
@@ -131,6 +134,16 @@ enum Direction {
 enum Characters {
     case Enri
     case Emma
+}
+
+extension PlaceableObjects {
+    var rawValue: String {
+        switch self {
+        case .CrackedHolySymbol: return "Holy Symbol"
+        case .BloodySurgicalKnife: return "Knife"
+        case .MeltedCandle: return "Candle"
+        }
+    }
 }
 
 

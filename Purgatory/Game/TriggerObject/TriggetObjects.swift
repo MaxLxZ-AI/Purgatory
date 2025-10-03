@@ -180,7 +180,7 @@ final class Courpse: DialogTriggerNode {
 
 final class Pillar: DialogTriggerNode {
     var object: PlaceableObject?
-    
+    var wasObjectTaken = false
     init(object: PlaceableObject? = nil, texture: SKTexture, size: CGSize, dialogManager: DialogManager, wasPazzledSolved: Bool, triggerRadius: TriggerRadius, identity: TriggerIdentity) {
         self.object = object
         super.init(texture: texture, size: size, dialogManager: dialogManager, wasPazzledSolved: wasPazzledSolved, triggerRadius: triggerRadius, identity: identity)

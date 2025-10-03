@@ -58,10 +58,10 @@ final class CharacterButton: SKSpriteNode {
 }
 
 final class SelectionManager {
-    weak var scene: SKScene?
+    weak var scene: GameFortuneMergeScene?
     private var buttons: [CharacterButton] = []
     
-    init(scene: SKScene? = nil) {
+    init(scene: GameFortuneMergeScene? = nil) {
         self.scene = scene
     }
     
@@ -99,7 +99,7 @@ final class SelectionManager {
         
     }
     
-    func showWordsSelectionButtons(for words: [String], rightWord: (() -> Void)?, wrongWord: (() -> Void)?) {
+    func showWordsSelectionButtons(for words: [String], rightWord: (() -> Void)?, wrongWord: (() -> Void)?, trigger: DialogTriggering) {
         clearExistingButtons()
         
         for (index, word) in words.enumerated() {
@@ -117,11 +117,28 @@ final class SelectionManager {
             )
             
             button.setAction { [weak self] in
-                self?.handleWordSelection(word, rightWord: {
-                    rightWord?()
-                }, wrongWord: {
-                    wrongWord?()
-                })
+                switch trigger.identity {
+                case .bloodWriting:
+                    self?.handleWordSelection(word, rightWord: {
+                        rightWord?()
+                    }, wrongWord: {
+                        wrongWord?()
+                    })
+                case .magicRune:
+                    break
+                case .cursedMirror:
+                    break
+                case .corpseStrappedToATable:
+                    break
+                case .pillar:
+                    self?.takeOrLeave(word, take: {
+                        rightWord?()
+                        self!.scene!.placeableArray.remove(at: index - 1)
+                    }, leave: {
+                        wrongWord?()
+                    })
+                }
+
             }
             
             scene?.addChild(button)
@@ -131,6 +148,50 @@ final class SelectionManager {
         for button in buttons {
             button.position.y -= 90
         }
+    }
+    
+    func selectObject(objects: [String], action: (() -> Void)?, leave: (() -> Void)?, trigger: DialogTriggering) {
+        clearExistingButtons()
+        
+        for (index, object) in objects.enumerated() {
+            
+            let button = CharacterButton(
+                character: nil,
+                wordToGuess: object,
+                size: CGSize(width: 200, height: 50)
+            )
+            button.zPosition = 999
+            
+            button.position = CGPoint(
+                x: scene?.frame.midX ?? 0,
+                y: (scene?.frame.midY ?? 0) + CGFloat(index * 60)
+            )
+            scene?.addChild(button)
+            buttons.append(button)
+            button.setAction {
+                self.putOrLeave(object, put: {
+                    self.clearExistingButtons()
+                    action?()
+                    guard let pillar = trigger as? Pillar else { return }
+                    self.scene?.setUpPillarObject(pillar: pillar, index: index)
+                    self.scene?.checkOrder()
+                }, leave: {
+                    self.clearExistingButtons()
+                    leave?()
+                })
+            }
+        }
+    }
+    private func putOrLeave(_ word: String, put: (() -> Void)?, leave: (() -> Void)?) {
+        if word == "Leave" {
+            leave?()
+        } else {
+            put?()
+        }
+    }
+    
+    func findIndex(index: Int) -> Int {
+        index
     }
     
     private func handleCharacterSelection(_ character: GameCharacter, enriSelected: (() -> Void)?, emmaSelected: (() -> Void)?) {
@@ -145,7 +206,7 @@ final class SelectionManager {
     }
     
     func pullOutShard(success: (() -> Void), fail: (() -> Void)) {
-        var wasPulled = shouldHappen(percentage: 50)
+        let wasPulled = shouldHappen(percentage: 50)
         if wasPulled {
             success()
         } else {
@@ -169,12 +230,23 @@ final class SelectionManager {
         }
     }
     
+    private func takeOrLeave(_ word: String, take: (() -> Void)?, leave: (() -> Void)?) {
+        if word == "Take" {
+            clearExistingButtons()
+            take?()
+        } else {
+            clearExistingButtons()
+            leave?()
+        }
+    }
+    
+
+    
     private func clearExistingButtons() {
         buttons.forEach { $0.removeFromParent() }
         buttons.removeAll()
     }
     
-    // Example character-specific actions
     private func startHeroAction() {
         scene?.run(.playSoundFileNamed("hero.wav", waitForCompletion: false))
     }
