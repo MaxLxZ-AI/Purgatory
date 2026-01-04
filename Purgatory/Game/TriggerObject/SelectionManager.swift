@@ -171,10 +171,42 @@ final class SelectionManager {
             button.setAction {
                 self.putOrLeave(object, put: {
                     self.clearExistingButtons()
-                    action?()
+                    
                     guard let pillar = trigger as? Pillar else { return }
-                    self.scene?.setUpPillarObject(pillar: pillar, index: index)
-                    self.scene?.checkOrder()
+                    self.scene?.checkOrder (onDialogEnd: {
+                        action?()
+                        self.scene?.setUpPillarObject(pillar: pillar, index: index)
+                    }, trigger: pillar)
+                }, leave: {
+                    self.clearExistingButtons()
+                    leave?()
+                })
+            }
+        }
+    }
+    
+    func finalDecision(objects: [String], action: (() -> Void)?, leave: (() -> Void)?) {
+        clearExistingButtons()
+        
+        for (index, object) in objects.enumerated() {
+            
+            let button = CharacterButton(
+                character: nil,
+                wordToGuess: object,
+                size: CGSize(width: 200, height: 50)
+            )
+            button.zPosition = 999
+            
+            button.position = CGPoint(
+                x: scene?.frame.midX ?? 0,
+                y: (scene?.frame.midY ?? 0) + CGFloat(index * 60)
+            )
+            scene?.addChild(button)
+            buttons.append(button)
+            button.setAction {
+                self.putOrLeave(object, put: {
+                    self.clearExistingButtons()
+                    action?()
                 }, leave: {
                     self.clearExistingButtons()
                     leave?()
@@ -229,6 +261,7 @@ final class SelectionManager {
             wrongWord?()
         }
     }
+    
     
     private func takeOrLeave(_ word: String, take: (() -> Void)?, leave: (() -> Void)?) {
         if word == "Take" {

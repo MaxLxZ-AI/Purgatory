@@ -84,7 +84,6 @@ final class DialogManager {
             actions = [
                 CutsceneAction(type: .runBlock({ [self] in
                     self.cutsceneManager?.dimTheLight()
-                    
                 }), delay: 0),
                 CutsceneAction(type: .showDialog("Welcome to the game!", texture: SKTexture(image: .defaultEnri)), delay: 5),
                 CutsceneAction(type: .moveCharacter(emma, to: CGPoint(x: emma.position.x - 100, y: emma.position.y), duration: 2.0), delay: 0),
@@ -100,7 +99,6 @@ final class DialogManager {
             ]
         case .illusionTrap:
             actions = [
-                
                 CutsceneAction(type: .runBlock({ [self] in
                     self.cutsceneManager?.dimTheLight()
                     scene?.actionWithButtons(action: .hide)

@@ -119,7 +119,6 @@ class GameCharacter: SKSpriteNode {
     private func canMoveInDirection(_ direction: Direction) -> Bool {
         guard let scene = scene else { return false }
         
-        // Дополнительная проверка на валидность scene
         guard scene.size.width > 0 && scene.size.height > 0 else { return false }
         
         let checkDistance: CGFloat = size.width / 2 + 5
@@ -219,13 +218,11 @@ final class Emma: GameCharacter {
     func updateFollowing() {
         guard let leader = leader else { return }
         
-        // Record leader's position
         leaderPositions.append(leader.position)
         if leaderPositions.count > maxTrailLength {
             leaderPositions.removeFirst()
         }
         
-        // Only move if leader has moved sufficiently
         let distanceToLeader = hypot(position.x - leader.position.x,
                                    position.y - leader.position.y)
         
@@ -233,23 +230,23 @@ final class Emma: GameCharacter {
             let targetIndex = min(Int(followDelay * 10), leaderPositions.count - 1)
             let targetPosition = leaderPositions[max(0, targetIndex)]
             
-            // Calculate direction to target
             let dx = targetPosition.x - position.x
             let dy = targetPosition.y - position.y
             let distance = hypot(dx, dy)
             
-            // Normalize direction and apply speed
-            if distance >=   5 {
+            if distance >= 5 {
                 let directionX = dx / distance
                 let directionY = dy / distance
                 
-               
+            
                 
                 if !isWalking {
                     updateFollowingDirection(dx: directionX, dy: directionY)
                     isWalking = true
                 }
-               
+//                let maxIndex = leaderPositions.count - 1
+//                let requiredIndex = maxIndex - 5
+//                moveToPosition(leaderPositions[requiredIndex], duration: (dx / distance) * moveSpeed)
                 physicsBody?.velocity = CGVector(
                                    dx: (dx / distance) * moveSpeed ,
                                    dy: (dy / distance) * moveSpeed
@@ -260,6 +257,10 @@ final class Emma: GameCharacter {
         } else {
             stopMoving()
         }
+    }
+    
+    private func move(array: [CGPoint], maxIndex: Int) {
+        
     }
     
     private func updateFollowingDirection(dx: CGFloat, dy: CGFloat) {

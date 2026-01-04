@@ -62,12 +62,10 @@ struct MenuButton: View {
     @State private var scaleValue = 1.0
     private let bImage: Image
     private let action: () -> Void
-    //MARK: - Init
     init(scaleValue: Double = 1.0, bImage: Image, action: @escaping () -> Void) {
         self.bImage = bImage
         self.action = action
     }
-    //MARK: - Views
     var body: some View {
         Button {
         } label: {

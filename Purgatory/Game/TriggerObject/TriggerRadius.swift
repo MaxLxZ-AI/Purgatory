@@ -16,7 +16,6 @@ class TriggerRadius: SKSpriteNode {
         physicsBody?.collisionBitMask = PhysicsCategory.none
         physicsBody?.contactTestBitMask = PhysicsCategory.character
         
-        // Optional debug visualization
         let circle = SKShapeNode(circleOfRadius: size.width/2)
         circle.strokeColor = .green.withAlphaComponent(0.3)
         circle.lineWidth = 2

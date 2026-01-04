@@ -42,8 +42,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             }
             return
         }
-        
-
     }
     
     private func loadCharacters() {
@@ -281,9 +279,21 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func checkOrder() {
+    func checkOrder(onDialogEnd: (() -> Void)?, trigger: DialogTriggering) {
         if placeableArray == Constants.Arrays.rightOrder {
             print("Right order")
+        }
+        if placeableArray.count == 2 {
+            dilogManager.presentSequence([("Are you sure about it?", nil)])
+            dilogManager.onDialogEnd = {
+                self.selectionManager.finalDecision(objects: ["Leave", "Yes"], action: {
+                    onDialogEnd?()
+                }, leave: {
+                    trigger.wasDialogTriggered = false
+                })
+            }
+        } else {
+            onDialogEnd?()
         }
     }
     
@@ -385,7 +395,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             self.selectionManager.selectObject(objects: objectArray, action: {
                 trigger.wasDialogTriggered = false
                 pillar.wasObjectTaken.toggle()
-                
             }, leave: {
                 trigger.wasDialogTriggered = false
             }, trigger: pillar)
@@ -395,7 +404,6 @@ final class GameFortuneMergeScene: SKScene, SKPhysicsContactDelegate {
             
             self.selectionManager.showWordsSelectionButtons(for: actions, rightWord: {
                 self.lastTriggered = trigger
-                
                 pillar.object?.removeFromParent()
                 let rawValue = pillar.object?.type.rawValue
                 self.objectArray.append(rawValue!)

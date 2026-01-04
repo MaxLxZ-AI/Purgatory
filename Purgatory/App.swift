@@ -6,15 +6,13 @@ struct PurgatoryApp: App {
     @State var isMenu = true
     
     
-    @State var isLoad = false
+    @State var isLoad = true
     var body: some Scene {
         WindowGroup {
             ZStack {
                 if isMenu { MainMenu() }
                 else { LoadingView() }
 //                LoadingView()
-//                UIKitViewControllerWrapper()
-//                ConnectionView()
             }
             .ignoresSafeArea()
             .onAppear {
